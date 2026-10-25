@@ -16,10 +16,17 @@
 
   // ---------------------------------------------------- video backdrop
   // The server lists the theme's videos as scenes, each in the sizes there
-  // are of it. Pick a scene, then the smallest size that still covers the
-  // backdrop sharply: the portrait one on a phone held upright, 1080p on
-  // most desktops, 4K only on screens that need it. Nothing loads for
-  // people who've asked for less motion, or whose browser is saving data.
+  // are of it. Pick a scene, then the smallest size that covers the
+  // backdrop well enough: the portrait one on a phone held upright, 1080p
+  // on most desktops (1440p screens included), 4K only on screens that
+  // really need it. Nothing loads for people who've asked for less motion,
+  // or whose browser is saving data.
+  //
+  // Each playing video holds its decoded frames in memory, and a 4K one
+  // holds a lot of them, so there are never more than two at once (the
+  // one showing, and the next one loading or fading in), and each is
+  // emptied out as soon as it's done with rather than left for the
+  // browser to tidy up whenever it gets round to it.
   const backdrop = doc.querySelector('.sky-video[data-video]');
   const still = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (backdrop && !still.matches) {
@@ -44,8 +51,24 @@
       const turned = sized.filter((v) => (v.h > v.w) === upright);
       const pool = turned.length ? turned : sized;
       if (thrifty) return pool[0];
-      // Up to 15% stretched still looks sharp in motion.
-      return pool.find((v) => Math.max(want[0] / v.w, want[1] / v.h) <= 1.15) || pool[pool.length - 1];
+      // A darkened background in motion still looks sharp stretched by
+      // half again, so 1080p does up to about 2900 pixels across. The next
+      // size up would cost four times the memory for no visible gain.
+      return pool.find((v) => Math.max(want[0] / v.w, want[1] / v.h) <= 1.5) || pool[pool.length - 1];
+    };
+
+    // release empties a video out and takes it off the page. Pausing and
+    // removing it isn't enough: the browser keeps its buffered file and
+    // decoder until it gets round to collecting it, which may be never.
+    const release = (v) => {
+      if (!v) return;
+      if (v.stop) v.stop();
+      v.pause();
+      v.removeAttribute('poster');
+      v.removeAttribute('src');
+      v.replaceChildren();
+      v.load();
+      v.remove();
     };
 
     // make builds a scene's video and starts it loading, without playing:
@@ -73,30 +96,42 @@
       return v;
     };
 
-    // start plays a video from make and fades it in over the last scene,
-    // once it's moving and has enough to play through without stalling.
-    // The last scene keeps playing until then, so there's never a gap.
+    // start plays a video from make and fades it in over the scene
+    // showing, once it's moving and has enough to play through without
+    // stalling. The old scene keeps playing until then, so there's never
+    // a gap; once it has faded out it's released, along with anything
+    // else left over, so only the new one remains.
+    let showing = null;
+    let fading = null;
+    let next = null; // the next scene, loading ahead
     const start = (v, first) => {
-      const old = backdrop.querySelector('video.on');
+      if (fading && fading !== v) release(fading); // overtaken before it showed
+      fading = v;
       // The first scene shows its picture at once.
       if (first && v.poster) v.classList.add('on');
-      let faded = false;
+      const done = new AbortController();
+      let timer = 0;
+      v.stop = () => { done.abort(); clearTimeout(timer); v.stop = null; };
       const fade = () => {
-        if (faded) return;
-        faded = true;
+        v.stop();
+        if (fading === v) fading = null;
+        const old = showing;
+        showing = v;
         v.classList.add('on');
-        if (old && old !== v) {
-          old.classList.remove('on');
-          setTimeout(() => old.remove(), 2500);
+        for (const o of backdrop.querySelectorAll('video')) {
+          if (o === v || o === next) continue;
+          o.classList.remove('on');
+          if (o === old) setTimeout(() => release(o), 2500);
+          else release(o);
         }
       };
       v.addEventListener('playing', () => {
         if (v.readyState >= 4) fade();
         else {
-          v.addEventListener('canplaythrough', fade, { once: true });
-          setTimeout(fade, 8000); // a slow line: go anyway
+          v.addEventListener('canplaythrough', fade, { once: true, signal: done.signal });
+          timer = setTimeout(fade, 8000); // a slow line: go anyway
         }
-      }, { once: true });
+      }, { once: true, signal: done.signal });
       v.play().catch(() => { /* blocked (battery saver, say): the picture stays */ });
       return v;
     };
@@ -105,13 +140,18 @@
     if (scenes.length) {
       let i = scenes.findIndex((s) => s.name === cfg.scene);
       if (i < 0) i = Math.floor(Math.random() * scenes.length);
-      let current = play(scenes[i], true);
+      play(scenes[i], true);
       let shown = true;
-      // Only spend the processor on it while it can be seen.
+      const live = () => shown && doc.visibilityState === 'visible';
+      // Only spend the processor on it while it can be seen. A scene
+      // loaded ahead is let go while the tab is hidden; it can load again.
       const sync = () => {
-        const v = backdrop.querySelector('video.on') || current;
-        if (shown && doc.visibilityState === 'visible') v.play().catch(() => {});
-        else v.pause();
+        const v = fading || showing;
+        if (v) {
+          if (live()) v.play().catch(() => {});
+          else v.pause();
+        }
+        if (doc.visibilityState !== 'visible') { release(next); next = null; }
       };
       if ('IntersectionObserver' in window) {
         new IntersectionObserver((entries) => {
@@ -123,8 +163,6 @@
       // Moving on: the next scene starts loading ahead of time, by
       // video_preload percent of video_change (unless the browser is saving
       // data, or it's set to 0), so it's ready to fade in.
-      let next = null;
-      const live = () => shown && doc.visibilityState === 'visible';
       if (cfg.change > 0 && scenes.length > 1) {
         const every = cfg.change * 1000;
         const lead = every * Math.min(Math.max(cfg.preload || 0, 0), 100) / 100;
@@ -137,8 +175,10 @@
           setTimeout(() => {
             if (live()) {
               i = (i + 1) % scenes.length;
-              current = next ? start(next, false) : play(scenes[i], false);
+              const v = next;
               next = null;
+              if (v) start(v, false);
+              else play(scenes[i], false);
             }
             cycle();
           }, every);
@@ -151,8 +191,9 @@
         const now = innerHeight > innerWidth;
         if (now === upright) return;
         upright = now;
-        if (next) { next.remove(); next = null; } // loaded for the other shape
-        current = play(scenes[i], false);
+        release(next); // loaded for the other shape
+        next = null;
+        play(scenes[i], false);
       });
     }
   }
