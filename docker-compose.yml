@@ -1,0 +1,43 @@
+# The sign-up site, beside an AzerothCore server that runs in Docker.
+#
+#   ./setup.sh                    first time: makes .env and the database user
+#   docker compose up -d --build  after that, or after pulling an update
+#
+# Settings are in .env (see .env.example).
+services:
+  websignup:
+    build: .
+    image: azerothcore-websignup:local
+    container_name: ac-websignup
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CONTENT_DIR: /content
+      # Keeps Go's memory use under the container's limit.
+      GOMEMLIMIT: 100MiB
+    ports:
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8090}:8080"
+    volumes:
+      # Your own versions of the page's text, if any (see content/README.md).
+      - ./content:/content:ro
+    networks:
+      - ac-network
+    # It needs nothing more than this.
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "3"
+
+networks:
+  # AzerothCore's own network, so the site can reach ac-database,
+  # ac-authserver and ac-worldserver by name.
+  ac-network:
+    external: true
+    name: ${AC_NETWORK:-azerothcore-playerbots_ac-network}

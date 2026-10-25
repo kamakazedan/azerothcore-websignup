@@ -1,0 +1,6 @@
+# Settings with passwords in them
+.env
+
+# Local builds
+/websignup
+/websignup.exe

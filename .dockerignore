@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+content/
+sql/
+*.md
+setup.sh
+docker-compose.yml
+docs/
