@@ -50,6 +50,7 @@ type Config struct {
 	ThemeDir           string // your own backgrounds and particles; see theme.go
 	Proxies            Proxies
 	AccountsPerIPDay   int
+	AIPlayers          int // AI players to mention when the realm counts none online (AI_PLAYERS)
 	HSTS               bool
 	Demo               bool
 }
@@ -354,16 +355,16 @@ func (v *statusView) describe(canSignUp bool) {
 }
 
 func census(players, bots int) string {
-	p, b := count(players, "player", "players"), count(bots, "bot", "bots")
+	p, b := count(players, "player", "players"), count(bots, "AI player that never sleeps", "AI players that never sleep")
 	switch {
 	case players > 0 && bots > 0:
-		return p + " and " + b + " in the world."
+		return p + " online, alongside " + b + "."
 	case players > 0:
 		return p + " in the world."
 	case bots > 0:
-		return b + " in the world, and no players yet."
+		return b + "."
 	default:
-		return "Nobody in the world yet."
+		return "The world awaits its first heroes."
 	}
 }
 
@@ -404,6 +405,12 @@ func (s *Server) currentStatus(ctx context.Context) statusView {
 		}
 		v.Type = snap.RealmType
 		v.Players, v.Bots = snap.Players, snap.Bots
+		// The world never sounds empty: when no bots are counted online
+		// (they're between logins, or their accounts aren't recognised),
+		// say how many there are.
+		if v.Bots == 0 {
+			v.Bots = s.cfg.AIPlayers
+		}
 		v.Online, v.Top = snap.Online, snap.Top
 		v.Uptime = ""
 		if v.WorldUp && !snap.UpSince.IsZero() {

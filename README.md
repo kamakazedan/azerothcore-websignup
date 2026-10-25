@@ -167,7 +167,8 @@ All in `.env`. The defaults suit AzerothCore's own Docker setup.
 | `ONLINE_LIST_SIZE` | `50` | |
 | `TOP_LIST_SIZE` | `10` | |
 | `HIDE_ACCOUNTS` | | Accounts kept out of the lists, comma separated |
-| `BOT_ACCOUNT_PREFIX` | `RNDBOT` | Playerbots' accounts: counted as bots, never listed, and reserved |
+| `BOT_ACCOUNT_PREFIX` | `RNDBOT` | Playerbots' accounts: counted as AI players, never listed, and reserved |
+| `AI_PLAYERS` | | How many AI players to mention (like `1500`) when none are counted online, so the realm never sounds empty |
 | `MIN_PASSWORD_LENGTH` | `8` | Between 4 and 16; the game allows no more than 16 |
 | `ACCOUNTS_PER_IP_PER_DAY` | `3` | |
 | `ALLOW_SHARED_EMAIL` | `0` | `1` lets accounts share an email address |
