@@ -253,12 +253,51 @@ code {
 /* Layers behind the words, back to front: the sky (your picture, or a
    plain dark one), your video if there is one, a shade that keeps the
    words readable and fades into the page, then the particles. */
+/* A landing page: the scene fills the whole screen, and the rest of the
+   page starts below it. */
 .hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
   padding: 92px 0 120px;
   background: var(--night);
+}
+
+/* A quiet pointer down to the rest of the page. */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  opacity: .7;
+}
+.scroll-cue::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 10px;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid var(--gold-soft);
+  border-bottom: 2px solid var(--gold-soft);
+  transform: rotate(45deg);
+  filter: drop-shadow(0 0 6px rgba(233, 196, 106, .6));
+}
+.scroll-cue:hover { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-cue { animation: cue-bob 2.4s ease-in-out 3s infinite; }
+}
+@keyframes cue-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
 }
 
 .sky,
@@ -307,7 +346,7 @@ code {
   background:
     radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(2, 4, 9, .7) 100%),
     linear-gradient(180deg, rgba(3, 6, 12, .55) 0, rgba(3, 6, 12, 0) 160px),
-    linear-gradient(180deg, rgba(5, 8, 15, 0) 50%, var(--night) 100%),
+    linear-gradient(180deg, rgba(5, 8, 15, 0) 72%, var(--night) 100%),
     rgba(3, 6, 12, var(--hero-shade, 0));
 }
 
