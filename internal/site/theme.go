@@ -6,6 +6,8 @@ package site
 //	background.jpg      the picture behind the name and form (or .png, .webp, .avif)
 //	background-phone.jpg  a different crop of it for phones
 //	background.mp4      a looping video instead (or .webm; the picture is shown until it plays)
+//	lich-king.1920x1080.mp4  any other video is a scene: one is picked for each visit,
+//	                    in the size that suits the screen (see theme/README.md)
 //	page.jpg            a picture behind the rest of the page, dimmed
 //	particle.png        images that float across the top; particle-2.png and so on for variety
 //	logo.svg            replaces the emblem in the corner (or .png, .webp)
@@ -21,6 +23,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -67,11 +70,33 @@ var (
 
 	// Theme files go into URLs and CSS as they are, so their names are kept plain.
 	safeName = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`)
+
+	// A scene's files: its name, then optionally its size (lich-king.1920x1080.mp4,
+	// lich-king-720x1280.webm, lich-king.jpg).
+	sceneFile = regexp.MustCompile(`^([a-z0-9][a-z0-9._-]*?)(?:[._-]([0-9]{2,5})x([0-9]{2,5}))?(\.[a-z0-9]+)$`)
+	sceneName = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
 )
 
 const maxSprites = 12
 
-type themeVideo struct{ URL, Type string }
+type themeVideo struct {
+	URL  string `json:"url"`
+	Type string `json:"type"`
+}
+
+// A scene is one background video, in as many sizes as you have of it. The
+// page picks a scene, then the size that best fits the screen.
+type themeScene struct {
+	Name   string         `json:"name"`
+	Poster string         `json:"poster,omitempty"`
+	Sizes  []themeVariant `json:"sizes"`
+}
+
+type themeVariant struct {
+	W   int          `json:"w"` // 0 when the file name doesn't say
+	H   int          `json:"h"`
+	Src []themeVideo `json:"src"`
+}
 
 // Theme is what the page uses of the theme folder: URLs (versioned, so
 // browsers can keep them) and the settings from theme.conf.
@@ -79,7 +104,8 @@ type Theme struct {
 	Stamp           string
 	Background      string
 	BackgroundPhone string
-	Videos          []themeVideo
+	Scenes          []themeScene
+	Video           string // the scenes and settings as JSON, for the page's script
 	Page            string
 	Sprites         []string
 	Logo            string
@@ -103,12 +129,16 @@ type ThemeSettings struct {
 	Opacity   float64
 	Spin      bool
 	Target    float64 // rise: how far across (0-100) they drift towards; -1 for straight up
+	Scene     string  // video_scene: random, or the name of one
+	Change    int     // video_change: seconds before moving on to the next scene; 0 for never
+	Quality   int     // video_quality: the largest size to send, by its short side (720, 1080...); 0 for any
 }
 
 func defaultSettings() ThemeSettings {
 	return ThemeSettings{
 		Focus: "50% 40%", Shade: .35, Motion: "none", PageShade: .75,
 		Particles: "", Count: 18, SizeMin: 12, SizeMax: 36, Speed: 1, Opacity: .9, Spin: true, Target: -1,
+		Scene: "random",
 	}
 }
 
@@ -203,11 +233,6 @@ func (t *themeDir) refreshLocked(first bool) {
 	if n := pick("background-phone", pictureExts); n != "" {
 		th.BackgroundPhone = url(n)
 	}
-	for _, ext := range videoExts {
-		if n := pick("background", []string{ext}); n != "" {
-			th.Videos = append(th.Videos, themeVideo{URL: url(n), Type: themeTypes[ext]})
-		}
-	}
 	if n := pick("page", pictureExts); n != "" {
 		th.Page = url(n)
 	}
@@ -220,6 +245,8 @@ func (t *themeDir) refreshLocked(first bool) {
 	if n := pick("theme", []string{".css"}); n != "" {
 		th.CSS = url(n)
 	}
+
+	th.Scenes = scenes(regular, url, th.Background)
 
 	var sprites, skipped []string
 	for lower, e := range regular {
@@ -263,6 +290,21 @@ func (t *themeDir) refreshLocked(first bool) {
 	if th.Settings.Particles != "none" {
 		th.Slots = make([]struct{}, th.Settings.Count)
 	}
+	if len(th.Scenes) > 0 {
+		s := th.Settings
+		if s.Scene != "random" && !hasScene(th.Scenes, s.Scene) {
+			problems = append(problems, fmt.Sprintf("theme.conf: video_scene = %s, but there are no videos called that; "+
+				"picking one at random", s.Scene))
+			th.Settings.Scene = "random"
+		}
+		js, _ := json.Marshal(struct {
+			Scene   string       `json:"scene"`
+			Change  int          `json:"change"`
+			Quality int          `json:"quality"`
+			Scenes  []themeScene `json:"scenes"`
+		}{th.Settings.Scene, s.Change, s.Quality, th.Scenes})
+		th.Video = string(js)
+	}
 
 	t.theme, t.files, t.css = th, files, th.stylesheet()
 
@@ -294,12 +336,103 @@ func (t *themeDir) refreshLocked(first bool) {
 		}
 	}
 	if t.dir != "" && (len(entries) > 0 || !first) {
-		t.log.Info("theme loaded", "dir", t.dir, "background", th.Background != "", "video", len(th.Videos) > 0,
+		t.log.Info("theme loaded", "dir", t.dir, "background", th.Background != "", "videos", sceneList(th.Scenes),
 			"particles", th.Settings.Particles, "particle images", len(th.Sprites))
 	}
 	for _, p := range problems {
 		t.log.Warn("theme", "problem", p)
 	}
+}
+
+// scenes groups the folder's videos by name, each in every size there is
+// of it, with a picture of the same name (lich-king.jpg) to show while it
+// loads, or else the background picture.
+func scenes(regular map[string]os.DirEntry, url func(string) string, background string) []themeScene {
+	names := make([]string, 0, len(regular))
+	for lower := range regular {
+		names = append(names, lower)
+	}
+	sort.Strings(names)
+
+	byName := map[string]*themeScene{}
+	for _, lower := range names {
+		e := regular[lower]
+		m := sceneFile.FindStringSubmatch(lower)
+		if !hasExt(lower, videoExts) || !safeName.MatchString(e.Name()) || m == nil {
+			continue
+		}
+		sc := byName[m[1]]
+		if sc == nil {
+			sc = &themeScene{Name: m[1]}
+			byName[m[1]] = sc
+		}
+		w, _ := strconv.Atoi(m[2])
+		h, _ := strconv.Atoi(m[3])
+		i := 0
+		for i < len(sc.Sizes) && (sc.Sizes[i].W != w || sc.Sizes[i].H != h) {
+			i++
+		}
+		if i == len(sc.Sizes) {
+			sc.Sizes = append(sc.Sizes, themeVariant{W: w, H: h})
+		}
+		sc.Sizes[i].Src = append(sc.Sizes[i].Src, themeVideo{URL: url(e.Name()), Type: themeTypes[m[4]]})
+	}
+	for _, lower := range names {
+		e := regular[lower]
+		m := sceneFile.FindStringSubmatch(lower)
+		if !hasExt(lower, pictureExts) || !safeName.MatchString(e.Name()) || m == nil || m[1] == "background" {
+			continue
+		}
+		if sc := byName[m[1]]; sc != nil && sc.Poster == "" {
+			sc.Poster = url(e.Name())
+		}
+	}
+
+	out := make([]themeScene, 0, len(byName))
+	for _, sc := range byName {
+		if sc.Poster == "" {
+			sc.Poster = background
+		}
+		// Smallest first; WebM before MP4, as browsers try them in order.
+		sort.Slice(sc.Sizes, func(i, j int) bool { return sc.Sizes[i].W*sc.Sizes[i].H < sc.Sizes[j].W*sc.Sizes[j].H })
+		for _, v := range sc.Sizes {
+			sort.Slice(v.Src, func(i, j int) bool { return v.Src[i].Type > v.Src[j].Type })
+		}
+		out = append(out, *sc)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+func hasScene(scenes []themeScene, name string) bool {
+	for _, sc := range scenes {
+		if sc.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+// sceneList is for the log: "lich-king (720x1280, 1920x1080), night-elf".
+func sceneList(scenes []themeScene) string {
+	var parts []string
+	for _, sc := range scenes {
+		var sizes []string
+		for _, v := range sc.Sizes {
+			if v.W > 0 {
+				sizes = append(sizes, fmt.Sprintf("%dx%d", v.W, v.H))
+			}
+		}
+		if len(sizes) > 0 {
+			parts = append(parts, sc.Name+" ("+strings.Join(sizes, ", ")+")")
+		} else {
+			parts = append(parts, sc.Name)
+		}
+	}
+	if len(parts) == 0 {
+		return "none"
+	}
+	return strings.Join(parts, ", ")
 }
 
 func unreadable(name string, err error) string {
@@ -325,10 +458,13 @@ func unusedReason(lower string, used []string) string {
 		}
 		return "particle images can be " + strings.Join(spriteExts, ", ") + ", with a see-through background"
 	}
+	if hasExt(lower, videoExts) {
+		return "video names must be plain: letters, digits, - _ and ., with no spaces"
+	}
 	exts, ok := themeNames[base]
 	if !ok {
 		return "the theme only uses files called background, background-phone, page, particle, logo, favicon " +
-			"and theme (see theme/README.md)"
+			"and theme, videos, and pictures named after a video (see theme/README.md)"
 	}
 	if !hasExt(lower, exts) {
 		return "a " + base + " can be " + strings.Join(exts, ", ")
@@ -469,6 +605,42 @@ func parseThemeConf(data []byte) (ThemeSettings, []string) {
 					s.Target = f
 				} else {
 					bad(key, val, "a number from 0 to 100, or none")
+				}
+			}
+		case "video_scene", "scene":
+			switch v := strings.ToLower(val); {
+			case v == "random" || v == "any":
+				s.Scene = "random"
+			case sceneName.MatchString(v):
+				s.Scene = v
+			default:
+				bad(key, val, "random, or the name of one of your videos")
+			}
+		case "video_change", "scene_change":
+			switch v := strings.ToLower(val); v {
+			case "never", "none", "off", "no":
+				s.Change = 0
+			default:
+				n, err := strconv.Atoi(strings.TrimSuffix(v, "s"))
+				if err == nil && (n == 0 || n >= 10 && n <= 3600) {
+					s.Change = n
+				} else {
+					bad(key, val, "a number of seconds from 10 to 3600, or 0 for never")
+				}
+			}
+		case "video_quality", "video_max":
+			switch v := strings.ToLower(val); v {
+			case "auto", "any", "best":
+				s.Quality = 0
+			default:
+				n, err := strconv.Atoi(strings.TrimSuffix(v, "p"))
+				if v == "4k" {
+					n, err = 2160, nil
+				}
+				if err == nil && n >= 240 && n <= 4320 {
+					s.Quality = n
+				} else {
+					bad(key, val, "auto, or a height like 720, 1080 or 2160")
 				}
 			}
 		default:

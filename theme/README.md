@@ -12,7 +12,8 @@ In Portainer it's the `theme` folder inside `WEBSIGNUP_FILES`.
 |---|---|
 | `background.jpg` | The picture behind the name and the form. `.png`, `.webp` and `.avif` work too. Use a wide picture, at least 1920 pixels across. |
 | `background-phone.jpg` | A picture for phones, if the wide one crops badly on a tall screen. Usually a portrait crop of the same picture. |
-| `background.mp4` | A looping video instead of the picture. It's muted and starts by itself. `.webm` works too; add both and browsers pick the one they play best. Keep it short and small, a few MB. `background.jpg` shows while it loads, and to anyone who has turned animation off. |
+| `background.mp4` | A looping video instead of the picture. It's muted and starts by itself. `.webm` works too; add both and browsers pick the one they play best. `background.jpg` shows while it loads, and to anyone who has turned animation off. |
+| `lich-king.1920x1080.mp4` | Any other video is a *scene*: see [Videos](#videos) below. |
 | `page.jpg` | A picture behind the rest of the page, dimmed so the text stays readable. |
 | `particle.png` | An image that floats across the top: a rock, a shard, an ember, a snowflake. Add `particle-2.png`, `particle-3.png` and so on (up to 12) for variety. Use PNG or WebP with a transparent background, or SVG. Animated GIFs and WebPs animate too. |
 | `logo.svg` | Replaces the crystal in the top corner. `.png` and `.webp` work too. It's shown 40 pixels tall. |
@@ -21,6 +22,33 @@ In Portainer it's the `theme` folder inside `WEBSIGNUP_FILES`.
 | `theme.css` | Your own CSS, loaded last, for anything else. |
 
 File names must be plain: letters, digits, `-`, `_` and `.`, no spaces.
+
+## Videos
+
+Every video in the folder is a scene, named by the part of its file name
+before the size. Each visit shows one scene, picked at random, and can
+move from one to the next (see `video_change` below).
+
+Give each scene several sizes and the page picks the one that suits the
+screen, so phones aren't sent a 30 MB 4K file:
+
+```
+lich-king.720x1280.mp4      phones held upright
+lich-king.1920x1080.mp4     most computers, and phones on their side
+lich-king.3840x2160.mp4     only on very large or very sharp screens
+lich-king.jpg               shown while the video loads (optional)
+```
+
+The size goes after the name, as `name.WIDTHxHEIGHT.mp4` (a `-` works
+in place of the `.` too). A scene can have any sizes, or just one, and a
+video with no size in its name is used for every screen. A `.webm` of
+the same name and size is offered alongside the MP4. A picture with the
+scene's name shows before the video plays; without one, `background.jpg`
+does.
+
+Nobody who has turned animation off in their system settings gets a
+video, and neither does anyone whose browser is set to save data. The
+video stops while it's scrolled out of sight.
 
 ## Settings
 
@@ -40,6 +68,9 @@ explains every setting:
 | `particle_opacity` | `0.9` | How solid the closest ones are |
 | `particle_spin` | `yes` | Whether they turn as they move |
 | `particle_target` | `none` | Rising particles drift towards this point across the screen (`0` to `100`) and shrink into it |
+| `video_scene` | `random` | Which scene each visit starts on: `random`, or a scene's name like `lich-king` |
+| `video_change` | `0` | Seconds before fading to the next scene (`10` to `3600`); `0` stays on one |
+| `video_quality` | `auto` | The largest size to send, by its shorter side: `720`, `1080`, `2160`. `auto` sends whatever suits the screen |
 
 How the particles move:
 
