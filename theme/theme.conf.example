@@ -38,7 +38,10 @@ video_preload = 50%
 video_flip = none
 
 # The largest size of video to send, by its shorter side: 720, 1080 or
-# 2160. auto picks whatever suits each screen, 4K only for big ones.
+# 2160. auto picks whatever suits each screen: 1080p for most computers
+# (1440p screens too), 4K only for screens wider than about 2900 pixels.
+# A 4K video takes about four times the memory of a 1080p one while it
+# plays, so 1080 here keeps the page light on every screen.
 video_quality = auto
 
 # How much to darken page.jpg, behind the rest of the page: 0 to 0.95.

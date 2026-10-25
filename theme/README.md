@@ -35,7 +35,7 @@ screen, so phones aren't sent a 30 MB 4K file:
 ```
 lich-king.720x1280.mp4      phones held upright
 lich-king.1920x1080.mp4     most computers, and phones on their side
-lich-king.3840x2160.mp4     only on very large or very sharp screens
+lich-king.3840x2160.mp4     only on screens wider than about 2900 pixels
 lich-king.jpg               shown while the video loads (optional)
 ```
 
@@ -45,6 +45,10 @@ video with no size in its name is used for every screen. A `.webm` of
 the same name and size is offered alongside the MP4. A picture with the
 scene's name shows before the video plays; without one, `background.jpg`
 does.
+
+However many scenes there are, at most two videos are ever loaded at
+once: the one showing and the next one, and each is emptied out of the
+browser's memory as soon as it has faded away.
 
 Nobody who has turned animation off in their system settings gets a
 video, and neither does anyone whose browser is set to save data. The
@@ -72,7 +76,7 @@ explains every setting:
 | `video_change` | `0` | Seconds before fading to the next scene (`10` to `3600`); `0` stays on one |
 | `video_preload` | `50%` | How early the next scene starts loading, as a share of `video_change`, so it fades in on time. `0` waits until it's due |
 | `video_flip` | `none` | Scenes to show mirrored left to right, like `lich-king, night-elf-archer`, or `all` |
-| `video_quality` | `auto` | The largest size to send, by its shorter side: `720`, `1080`, `2160`. `auto` sends whatever suits the screen |
+| `video_quality` | `auto` | The largest size to send, by its shorter side: `720`, `1080`, `2160`. `auto` sends whatever suits the screen. A 4K video uses about four times the memory of a 1080p one, so `1080` keeps the page light everywhere |
 
 How the particles move:
 
