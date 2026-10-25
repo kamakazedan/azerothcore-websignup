@@ -443,6 +443,11 @@ code {
   gap: 36px;
 }
 .hero-copy { container-type: inline-size; padding-top: 8px; }
+/* On a phone the realm status comes after the form, so the form is the
+   first thing under the name. */
+@media (max-width: 999px) {
+  .hero-copy > :last-child { margin-bottom: 0; }
+}
 
 .realm-name {
   margin: 0 0 .26em;
@@ -522,11 +527,16 @@ code {
 
 @media (min-width: 1000px) {
   .hero { padding: 132px 0 160px; }
+  /* Name and realm status on the left, centred against the form. */
   .hero-grid {
     grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
-    align-items: center;
-    gap: 64px;
+    grid-template-rows: 1fr auto auto 1fr;
+    grid-template-areas: ". account" "copy account" "plaque account" ". account";
+    gap: 0 64px;
   }
+  .hero-copy { grid-area: copy; }
+  .hero-grid > .account { grid-area: account; align-self: center; }
+  .hero-grid > .plaque { grid-area: plaque; }
   .tagline { margin-bottom: 36px; }
 }
 
