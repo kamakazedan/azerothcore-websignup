@@ -19,6 +19,19 @@ background_shade = 0.35
 #   drift  a slow sway from side to side
 background_motion = none
 
+# ------------------------------------------------------------- videos
+# Which scene each visit starts on: random, or the name of one of your
+# videos without its size, like lich-king for lich-king.1920x1080.mp4.
+video_scene = random
+
+# Seconds before fading to the next scene, 10 to 3600. 0 stays on the
+# one it started with.
+video_change = 0
+
+# The largest size of video to send, by its shorter side: 720, 1080 or
+# 2160. auto picks whatever suits each screen, 4K only for big ones.
+video_quality = auto
+
 # How much to darken page.jpg, behind the rest of the page: 0 to 0.95.
 page_shade = 0.75
 

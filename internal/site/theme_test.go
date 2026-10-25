@@ -30,12 +30,16 @@ particle_speed = 2
 particle_opacity = .6
 particle_spin = no
 particle_target = 40%
+video_scene = Lich-King
+video_change = 45s
+video_quality = 1080p
 `))
 	if len(problems) > 0 {
 		t.Fatalf("problems: %v", problems)
 	}
 	want := ThemeSettings{Focus: "50% 0%", Shade: .5, Motion: "zoom", PageShade: .8, Particles: "float", Count: 7,
-		SizeMin: 10, SizeMax: 50, Speed: 2, Opacity: .6, Spin: false, Target: 40}
+		SizeMin: 10, SizeMax: 50, Speed: 2, Opacity: .6, Spin: false, Target: 40,
+		Scene: "lich-king", Change: 45, Quality: 1080}
 	if s != want {
 		t.Errorf("got  %+v\nwant %+v", s, want)
 	}
@@ -46,11 +50,14 @@ particles = sideways
 particle_count = 1000
 particle_size = 50-10
 particle_speed = fast
+video_scene = ../etc
+video_change = 3
+video_quality = huge
 colour = red
 just some words
 `))
-	if len(problems) != 7 {
-		t.Errorf("want 7 problems, got %d: %v", len(problems), problems)
+	if len(problems) != 10 {
+		t.Errorf("want 10 problems, got %d: %v", len(problems), problems)
 	}
 	if s != defaultSettings() {
 		t.Errorf("bad values should leave the defaults: %+v", s)
@@ -121,8 +128,7 @@ func TestThemeFolder(t *testing.T) {
 
 	body := get(t, h, "/").Body.String()
 	for _, want := range []string{
-		`<video class="sky-video motion-drift"`, `poster="/theme/background.jpg?v=` + th.Stamp + `"`,
-		`<source src="/theme/background.webm?v=`, `type="video/webm"`, `<source src="/theme/background.mp4?v=`,
+		`<div class="sky-video motion-drift" data-video="`,
 		`<div class="sky motion-drift"`, `class="particles particles-float has-sprite"`,
 		`<link rel="icon" href="/theme/favicon.png?v=`, `<img src="/theme/logo.svg?v=`,
 		`<link rel="stylesheet" href="/theme/theme.css?v=`, `media="(max-width: 640px)"`,
@@ -130,6 +136,12 @@ func TestThemeFolder(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("page is missing %q", want)
 		}
+	}
+	want := `{"scene":"random","change":0,"quality":0,"scenes":[{"name":"background","poster":"/theme/background.jpg?v=` +
+		th.Stamp + `","sizes":[{"w":0,"h":0,"src":[{"url":"/theme/background.webm?v=` + th.Stamp +
+		`","type":"video/webm"},{"url":"/theme/background.mp4?v=` + th.Stamp + `","type":"video/mp4"}]}]}]}`
+	if th.Video != want {
+		t.Errorf("video:\n got  %s\n want %s", th.Video, want)
 	}
 	if n := strings.Count(body, "<i></i>"); n != 7 {
 		t.Errorf("%d particles on the page, want 7", n)
@@ -257,5 +269,62 @@ func TestThemeDirIsolation(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/theme/background.jpg", nil))
 	if rec.Code != http.StatusNotFound {
 		t.Errorf("no theme folder: %d", rec.Code)
+	}
+}
+
+// Videos named like Dan's (lich-king.1920x1080.mp4) become scenes, each in
+// all its sizes, with a picture of the same name as its poster.
+func TestScenes(t *testing.T) {
+	dir := t.TempDir()
+	for _, n := range []string{"lich-king.720x1280.mp4", "lich-king.1920x1080.mp4", "lich-king.3840x2160.mp4",
+		"lich-king.1920x1080.webm", "lich-king.jpg", "Night-Elf-Archer-1920x1080.mp4", "background.jpg",
+		"Frozen Throne.mp4", "notes.jpg"} {
+		write(t, dir, n, "x")
+	}
+	write(t, dir, "theme.conf", "video_scene = lich-king\nvideo_change = 30\n")
+	var logs bytes.Buffer
+	td := newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)))
+	th, files, _ := td.get()
+
+	if len(th.Scenes) != 2 {
+		t.Fatalf("scenes: %+v", th.Scenes)
+	}
+	lk, ne := th.Scenes[0], th.Scenes[1]
+	if lk.Name != "lich-king" || !strings.HasPrefix(lk.Poster, "/theme/lich-king.jpg?v=") || len(lk.Sizes) != 3 {
+		t.Errorf("lich-king: %+v", lk)
+	}
+	if v := lk.Sizes[1]; v.W != 1920 || v.H != 1080 || len(v.Src) != 2 || v.Src[0].Type != "video/webm" {
+		t.Errorf("sizes should go smallest first, WebM before MP4: %+v", lk.Sizes)
+	}
+	if lk.Sizes[0].W != 720 || lk.Sizes[2].W != 3840 {
+		t.Errorf("sizes out of order: %+v", lk.Sizes)
+	}
+	if ne.Name != "night-elf-archer" || ne.Sizes[0].W != 1920 || !strings.HasPrefix(ne.Poster, "/theme/background.jpg?v=") {
+		t.Errorf("night-elf-archer: %+v", ne)
+	}
+	if _, ok := files["Night-Elf-Archer-1920x1080.mp4"]; !ok {
+		t.Error("a video's file should be served under its own name")
+	}
+	if !strings.Contains(th.Video, `"scene":"lich-king","change":30`) {
+		t.Errorf("settings missing from %s", th.Video)
+	}
+	out := logs.String()
+	for _, want := range []string{"lich-king (720x1280, 1920x1080, 3840x2160)", "Frozen Throne.mp4 isn't used: video names must be plain",
+		"notes.jpg isn't used"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("the log doesn't say %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "lich-king.jpg isn't") {
+		t.Errorf("a scene's poster was reported as unused:\n%s", out)
+	}
+
+	// A scene that isn't there is reported, and one is picked at random.
+	write(t, dir, "theme.conf", "video_scene = arthas\n")
+	logs.Reset()
+	td.refresh(false)
+	th, _, _ = td.get()
+	if th.Settings.Scene != "random" || !strings.Contains(logs.String(), "no videos called that") {
+		t.Errorf("scene %q, log:\n%s", th.Settings.Scene, logs.String())
 	}
 }
