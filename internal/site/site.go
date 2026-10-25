@@ -32,24 +32,25 @@ var files embed.FS
 
 // Config is what the page says and allows.
 type Config struct {
-	SiteName         string // shown in the header and title; the realm's name by default
-	Tagline          string
-	Realmlist        string // set realmlist ...
-	DownloadURL      string // a ready-to-play client, if there is one
-	GameVersion      string
-	PublicURL        string // https://wow.example.com, for links shared elsewhere
-	Registration     bool
-	ChangePassword   bool
-	ShowOnline       bool
-	ShowTop          bool
-	Rules            game.Rules
-	WorldAddr        string // ac-worldserver:8085, to tell whether the realm is up
-	AuthAddr         string // ac-authserver:3724
-	ContentDir       string
-	Proxies          Proxies
-	AccountsPerIPDay int
-	HSTS             bool
-	Demo             bool
+	SiteName           string // shown in the header and title; the realm's name by default
+	Tagline            string
+	Realmlist          string // set realmlist ...
+	DownloadURL        string // a ready-to-play client, if there is one
+	ClientHasRealmlist bool   // that client already points at this realm
+	GameVersion        string
+	PublicURL          string // https://wow.example.com, for links shared elsewhere
+	Registration       bool
+	ChangePassword     bool
+	ShowOnline         bool
+	ShowTop            bool
+	Rules              game.Rules
+	WorldAddr          string // ac-worldserver:8085, to tell whether the realm is up
+	AuthAddr           string // ac-authserver:3724
+	ContentDir         string
+	Proxies            Proxies
+	AccountsPerIPDay   int
+	HSTS               bool
+	Demo               bool
 }
 
 type Server struct {

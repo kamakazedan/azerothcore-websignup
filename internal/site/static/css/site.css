@@ -1,5 +1,7 @@
 /* azerothcore-websignup: one stylesheet, mobile first.
-   Everything is original: no Blizzard art, fonts or logos. */
+   Everything is original: no Blizzard art, fonts or logos. The look is
+   the frozen north at its grimmest: black rock, cold light from a tear in
+   the sky, and the game's own blue and gold for the things you press. */
 
 /* ---------------------------------------------------------------- fonts */
 @font-face {
@@ -30,36 +32,30 @@
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: "Cinzel Decorative";
-  src: url("../fonts/CinzelDecorative-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* --------------------------------------------------------------- tokens */
 :root {
   color-scheme: dark;
 
-  --night: #081327;        /* the page, and the snowfield the mountains end in */
-  --night-2: #0a172d;      /* alternate bands */
-  --panel: rgba(9, 22, 45, .9);
-  --well: #050d1d;         /* inputs, code */
-  --rime: #dcefff;         /* text */
-  --rime-dim: #a9bfd9;     /* secondary text */
-  --steel: #8ea3c0;        /* labels on tables, quiet text */
-  --frost: #8fd3ff;        /* links, focus, the active tab */
-  --frost-hi: #c9edff;
-  --line: rgba(143, 211, 255, .3);
-  --line-soft: rgba(143, 211, 255, .12);
+  --night: #05080f;        /* the page, and the ice the scene ends in */
+  --night-2: #070c16;      /* alternate bands */
+  --sky-foot: #08142a;     /* where the sky picture fades out */
+  --panel: rgba(4, 9, 18, .86);
+  --well: #03060c;         /* inputs, code */
+  --rime: #dbe7f3;         /* text */
+  --rime-dim: #9db1c7;     /* secondary text */
+  --steel: #8a9eb8;        /* labels on tables, quiet text */
+  --frost: #a3d3fb;        /* links, focus */
+  --frost-hi: #d6ecff;
+  --line: rgba(150, 190, 230, .26);
+  --line-soft: rgba(150, 190, 230, .1);
   --gold: #ffd100;         /* the game's own button text */
+  --gold-soft: #e9c46a;    /* labels and numerals */
   --ok: #6fe39a;
   --bad: #ff8f84;
 
   --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
   --font-head: "Cinzel", "Trajan Pro", Georgia, serif;
-  --font-title: "Cinzel Decorative", "Cinzel", Georgia, serif;
   --font-code: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
 
   --gutter: 16px;
@@ -97,12 +93,12 @@ body {
 h1, h2, h3 {
   margin: 0;
   font-family: var(--font-head);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.15;
-  color: #eef8ff;
+  color: #e8f0f8;
   text-wrap: balance;
 }
-h2 { font-size: 1.75rem; letter-spacing: .01em; }
+h2 { font-size: 1.75rem; letter-spacing: .03em; }
 h3 { font-size: 1.3125rem; }
 @media (min-width: 768px) {
   h2 { font-size: 2.25rem; }
@@ -111,7 +107,7 @@ h3 { font-size: 1.3125rem; }
 p { margin: 0; text-wrap: pretty; }
 a { color: var(--frost); text-underline-offset: .18em; }
 a:hover { color: var(--frost-hi); }
-strong { color: #eef8ff; }
+strong { color: #f0f5fa; }
 img, svg { display: block; }
 button { font: inherit; color: inherit; }
 
@@ -254,76 +250,97 @@ code {
 }
 
 /* ----------------------------------------------------------------- hero */
+/* Three layers behind the words: the sky, rock fragments rising towards
+   the tear in it, and the land in front of them. */
 .hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 92px 0 128px;
-  background: linear-gradient(180deg, #030814 0%, #071430 42%, #0d284a 74%, #163b63 100%);
+  padding: 92px 0 150px;
+  background: var(--sky-foot);
 }
 
 .sky,
-.snow,
-.peaks {
+.shards,
+.land {
   position: absolute;
   pointer-events: none;
 }
 .sky {
   inset: 0;
-  z-index: -3;
-  background: url("../img/sky.svg") center top / max(100%, 1100px) auto no-repeat;
+  z-index: -4;
+  background: url("../img/sky.webp") center top / max(100%, 1180px) auto no-repeat;
 }
-.peaks {
+.land {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 180px;
+  height: clamp(250px, 35vw, 600px);
   z-index: -2;
-  background: url("../img/peaks.svg") center bottom / cover no-repeat;
-}
-@media (min-width: 1000px) {
-  .peaks { height: clamp(220px, 22vw, 340px); }
+  background: url("../img/land.webp") center bottom / cover no-repeat;
 }
 
-/* Snow: two layers of tiled flakes, each sliding down exactly one tile per
-   loop so the loop never shows. */
-.snow { inset: 0; z-index: -1; overflow: hidden; }
-.snow::before,
-.snow::after {
-  content: "";
-  position: absolute;
+/* Each fragment rises from behind the land, drifts in towards the tear,
+   shrinks into the distance and fades as it reaches the light. */
+.shards {
   left: 0;
   right: 0;
-  will-change: transform;
+  top: 0;
+  height: min(100%, 980px);
+  z-index: -3;
+  overflow: hidden;
+  --tx: 55;        /* where the tear is, in % of the width */
+  --pull: .55;     /* how far towards it they drift */
+  --rise: -780px;
 }
-.snow::before {
-  top: -360px;
-  bottom: 0;
-  background-size: 360px 360px;
-  background-image:
-    radial-gradient(circle at 6% 10%, rgba(255, 255, 255, .9) 0 1.8px, transparent 2.6px),
-    radial-gradient(circle at 27% 58%, rgba(255, 255, 255, .75) 0 2.2px, transparent 3px),
-    radial-gradient(circle at 44% 22%, rgba(255, 255, 255, .85) 0 1.5px, transparent 2.3px),
-    radial-gradient(circle at 63% 81%, rgba(255, 255, 255, .7) 0 2px, transparent 2.8px),
-    radial-gradient(circle at 81% 39%, rgba(255, 255, 255, .9) 0 1.7px, transparent 2.5px),
-    radial-gradient(circle at 93% 70%, rgba(255, 255, 255, .6) 0 1.4px, transparent 2.2px),
-    radial-gradient(circle at 16% 88%, rgba(255, 255, 255, .7) 0 1.6px, transparent 2.4px);
-  animation: snow-near 26s linear infinite;
+.shards i {
+  position: absolute;
+  top: 100%;
+  left: calc(var(--x) * 1%);
+  width: var(--w);
+  aspect-ratio: 1 / .82;
+  opacity: 0;
+  /* lit from above: a bright facet, a lit face, then shadow */
+  background: linear-gradient(166deg, #e2f3ff 0 7%, #5689c2 8% 36%, #0b1525 37% 100%);
+  clip-path: var(--shape);
+  animation: rise var(--d) linear var(--delay) infinite;
+  will-change: transform, opacity;
 }
-.snow::after {
-  top: -220px;
-  bottom: 0;
-  background-size: 220px 220px;
-  background-image:
-    radial-gradient(circle at 12% 30%, rgba(220, 240, 255, .6) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 38% 76%, rgba(220, 240, 255, .5) 0 1.1px, transparent 1.7px),
-    radial-gradient(circle at 57% 12%, rgba(220, 240, 255, .55) 0 .9px, transparent 1.5px),
-    radial-gradient(circle at 74% 52%, rgba(220, 240, 255, .6) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 90% 90%, rgba(220, 240, 255, .45) 0 1.2px, transparent 1.8px);
-  animation: snow-far 38s linear infinite;
+@keyframes rise {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--r0)) scale(1); opacity: 0; }
+  12% { opacity: var(--o); }
+  70% { opacity: var(--o); }
+  100% {
+    transform: translate3d(calc((var(--tx) - var(--x)) * var(--pull) * 1vw), var(--rise), 0) rotate(var(--r1)) scale(.32);
+    opacity: 0;
+  }
 }
-@keyframes snow-near { to { transform: translate3d(0, 360px, 0); } }
-@keyframes snow-far { to { transform: translate3d(0, 220px, 0); } }
+.shards i:nth-child(1) { --x: 5.0; --w: 14px; --d: 31.0s; --delay: -0.8s; --r0: -13deg; --r1: -62deg; --o: 0.58; --shape: polygon(14% 0, 70% 6%, 100% 44%, 90% 86%, 46% 100%, 0 70%); }
+.shards i:nth-child(2) { --x: 9.1; --w: 22px; --d: 29.6s; --delay: -17.5s; --r0: -28deg; --r1: -81deg; --o: 0.88; --shape: polygon(50% 0, 100% 38%, 80% 100%, 18% 92%, 0 34%); }
+.shards i:nth-child(3) { --x: 18.5; --w: 40px; --d: 24.8s; --delay: -16.1s; --r0: 3deg; --r1: -64deg; --o: 0.82; --shape: polygon(30% 0, 78% 10%, 100% 52%, 72% 100%, 20% 88%, 0 40%); }
+.shards i:nth-child(4) { --x: 22.3; --w: 18px; --d: 32.6s; --delay: -5.2s; --r0: -5deg; --r1: 45deg; --o: 0.84; --shape: polygon(8% 22%, 54% 0, 92% 12%, 100% 58%, 70% 92%, 22% 100%, 0 64%); }
+.shards i:nth-child(5) { --x: 30.1; --w: 28px; --d: 23.3s; --delay: -2.3s; --r0: 21deg; --r1: 109deg; --o: 0.93; --shape: polygon(40% 0, 88% 18%, 100% 66%, 60% 100%, 10% 84%, 0 30%); }
+.shards i:nth-child(6) { --x: 34.2; --w: 12px; --d: 35.6s; --delay: -13.5s; --r0: 3deg; --r1: 78deg; --o: 0.76; --shape: polygon(18% 6%, 62% 0, 100% 34%, 84% 82%, 38% 100%, 0 58%); }
+.shards i:nth-child(7) { --x: 41.8; --w: 34px; --d: 25.2s; --delay: -7.3s; --r0: -25deg; --r1: -117deg; --o: 0.85; --shape: polygon(14% 0, 70% 6%, 100% 44%, 90% 86%, 46% 100%, 0 70%); }
+.shards i:nth-child(8) { --x: 46.3; --w: 16px; --d: 33.7s; --delay: -5.5s; --r0: -9deg; --r1: 73deg; --o: 0.76; --shape: polygon(50% 0, 100% 38%, 80% 100%, 18% 92%, 0 34%); }
+.shards i:nth-child(9) { --x: 61.6; --w: 24px; --d: 30.9s; --delay: -16.5s; --r0: -15deg; --r1: 47deg; --o: 1.00; --shape: polygon(30% 0, 78% 10%, 100% 52%, 72% 100%, 20% 88%, 0 40%); }
+.shards i:nth-child(10) { --x: 66.3; --w: 14px; --d: 29.8s; --delay: -20.4s; --r0: 21deg; --r1: -33deg; --o: 0.56; --shape: polygon(8% 22%, 54% 0, 92% 12%, 100% 58%, 70% 92%, 22% 100%, 0 64%); }
+.shards i:nth-child(11) { --x: 74.5; --w: 44px; --d: 25.7s; --delay: -5.4s; --r0: 27deg; --r1: 79deg; --o: 0.87; --shape: polygon(40% 0, 88% 18%, 100% 66%, 60% 100%, 10% 84%, 0 30%); }
+.shards i:nth-child(12) { --x: 79.3; --w: 20px; --d: 31.0s; --delay: -4.4s; --r0: -22deg; --r1: 63deg; --o: 0.86; --shape: polygon(18% 6%, 62% 0, 100% 34%, 84% 82%, 38% 100%, 0 58%); }
+.shards i:nth-child(13) { --x: 83.4; --w: 30px; --d: 27.1s; --delay: -27.0s; --r0: -22deg; --r1: 24deg; --o: 0.76; --shape: polygon(14% 0, 70% 6%, 100% 44%, 90% 86%, 46% 100%, 0 70%); }
+.shards i:nth-child(14) { --x: 90.9; --w: 16px; --d: 30.8s; --delay: -24.4s; --r0: -5deg; --r1: -68deg; --o: 0.73; --shape: polygon(50% 0, 100% 38%, 80% 100%, 18% 92%, 0 34%); }
+.shards i:nth-child(15) { --x: 95.1; --w: 26px; --d: 25.5s; --delay: -14.1s; --r0: 27deg; --r1: -54deg; --o: 0.88; --shape: polygon(30% 0, 78% 10%, 100% 52%, 72% 100%, 20% 88%, 0 40%); }
+.shards i:nth-child(16) { --x: 27.9; --w: 36px; --d: 31.0s; --delay: -3.5s; --r0: -4deg; --r1: 36deg; --o: 0.93; --shape: polygon(8% 22%, 54% 0, 92% 12%, 100% 58%, 70% 92%, 22% 100%, 0 64%); }
+.shards i:nth-child(17) { --x: 70.6; --w: 12px; --d: 35.6s; --delay: -27.1s; --r0: 0deg; --r1: -92deg; --o: 0.64; --shape: polygon(40% 0, 88% 18%, 100% 66%, 60% 100%, 10% 84%, 0 30%); }
+.shards i:nth-child(18) { --x: 50.4; --w: 18px; --d: 30.5s; --delay: -4.7s; --r0: 16deg; --r1: -60deg; --o: 0.70; --shape: polygon(18% 6%, 62% 0, 100% 34%, 84% 82%, 38% 100%, 0 58%); }
+/* On a phone the words would cross the tear, so it gets the top of the
+   screen to itself and the name starts below it. */
+@media (max-width: 640px) {
+  .hero { padding-top: 288px; }
+  .sky { background-size: 900px auto; }
+  .shards { --tx: 61; --pull: .4; --rise: -700px; height: min(100%, 860px); }
+  .shards i:nth-child(n + 13) { display: none; }
+}
 
 .hero-grid {
   position: relative;
@@ -334,27 +351,26 @@ code {
 .hero-copy { container-type: inline-size; padding-top: 8px; }
 
 .realm-name {
-  margin: 0 0 .22em;
-  font-family: var(--font-title);
-  font-weight: 700;
+  margin: 0 0 .26em;
+  font-family: var(--font-head);
+  font-weight: 800;
   /* Sized to its column, so a realm name of nine or ten letters stays on
      one line from a phone to a desktop. */
-  font-size: clamp(2.5rem, 10vw, 5rem);
-  font-size: clamp(2.5rem, 12cqi, 5.5rem);
+  font-size: clamp(2.3rem, 9.5vw, 4.75rem);
+  font-size: clamp(2.3rem, 11.2cqi, 5.25rem);
   line-height: 1.02;
-  letter-spacing: .005em;
-  color: #e3f4ff;
+  letter-spacing: .06em;
+  color: #e6eef7;
   overflow-wrap: break-word;
 }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .realm-name {
-    /* Polished ice: bright at the top, a dark band where it catches the
-       horizon, light again at the foot. */
-    background: linear-gradient(180deg, #ffffff 6%, #e4f4ff 38%, #92caf2 52%, #4d84bb 70%, #c3e6ff 97%);
+    /* Cold steel: bright where it catches the light, dark in the middle. */
+    background: linear-gradient(180deg, #ffffff 4%, #d3e1ef 36%, #7e95b1 54%, #a9bfd6 74%, #eaf2fa 98%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 0 22px rgba(110, 190, 255, .32)) drop-shadow(0 2px 0 rgba(2, 8, 22, .9));
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .9)) drop-shadow(0 0 22px rgba(70, 140, 220, .35));
   }
 }
 
@@ -364,11 +380,12 @@ code {
   font-size: 1.3125rem;
   font-style: italic;
   line-height: 1.4;
-  color: #cfe3f7;
+  color: #c3d4e6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .8);
 }
 
 @media (min-width: 1000px) {
-  .hero { padding: 132px 0 220px; }
+  .hero { padding: 132px 0 230px; }
   .hero-grid {
     grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
     align-items: center;
@@ -380,7 +397,7 @@ code {
 /* --------------------------------------------- realm status, as the realm list shows it */
 .plaque {
   --cut: 10px;
-  --fill: rgba(5, 13, 29, .72);
+  --fill: rgba(3, 7, 14, .74);
   max-width: 30rem;
   padding: 14px 18px 16px;
   -webkit-backdrop-filter: blur(4px);
@@ -453,8 +470,8 @@ code {
   right: 14%;
   bottom: -1px;
   height: 2px;
-  background: var(--frost);
-  box-shadow: 0 0 12px var(--frost);
+  background: var(--gold-soft);
+  box-shadow: 0 0 10px rgba(233, 196, 106, .55);
 }
 .tab:focus-visible { outline-offset: -4px; }
 
@@ -472,6 +489,7 @@ label {
   display: block;
   margin-bottom: 6px;
   font-weight: 700;
+  color: var(--gold-soft);
 }
 
 input[type="text"],
@@ -573,22 +591,22 @@ noscript .alert { margin: 0 0 20px; }
   cursor: pointer;
 }
 
-/* The game's own call to action: crimson, bevelled, gold lettering. */
+/* The game's own call to action: deep blue, bevelled, gold lettering. */
 .btn-primary {
   width: 100%;
   margin-top: 24px;
   font-size: 1.125rem;
   color: var(--gold);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, .6);
-  background: linear-gradient(180deg, #c42b3b 0%, #951824 52%, #6c0e18 100%);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .7);
+  background: linear-gradient(180deg, #2c5e9b 0%, #183c6d 50%, #0c2246 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 214, 150, .4),
-    inset 0 0 0 1px rgba(255, 209, 0, .28),
-    inset 0 -3px 0 rgba(0, 0, 0, .28);
+    inset 0 1px 0 rgba(200, 230, 255, .38),
+    inset 0 0 0 1px rgba(255, 209, 0, .42),
+    inset 0 -3px 0 rgba(0, 0, 0, .35);
 }
 .btn-primary:hover {
-  color: #ffe266;
-  background: linear-gradient(180deg, #d6354a 0%, #a51d2b 52%, #791220 100%);
+  color: #ffe066;
+  background: linear-gradient(180deg, #3670b4 0%, #1d4880 50%, #0f2a55 100%);
 }
 .btn-primary:active { transform: translateY(1px); }
 .btn-primary[disabled] { cursor: progress; opacity: .85; }
@@ -727,8 +745,8 @@ noscript .alert { margin: 0 0 20px; }
   position: absolute;
   left: 0;
   top: -1px;
-  font: 600 1.75rem/1 var(--font-head);
-  color: var(--frost);
+  font: 700 1.75rem/1 var(--font-head);
+  color: var(--gold-soft);
 }
 .steps h3 {
   min-height: 28px;
@@ -736,6 +754,10 @@ noscript .alert { margin: 0 0 20px; }
   padding: 2px 0 0 56px;
 }
 .steps p + p { margin-top: 14px; }
+.skip-note {
+  font-style: italic;
+  color: var(--rime-dim);
+}
 .steps .btn-ghost { margin-top: 4px; }
 @media (min-width: 960px) {
   .steps {
@@ -985,8 +1007,12 @@ noscript .alert { margin: 0 0 20px; }
 /* ------------------------------------------------------- calmer motion */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .snow::before,
-  .snow::after,
   .spin { animation: none; }
+  /* The fragments hang where they are, part way up. */
+  .shards i {
+    animation: none;
+    opacity: var(--o);
+    transform: translate3d(calc((var(--tx) - var(--x)) * var(--pull) * .45vw), calc(var(--rise) * .45), 0) rotate(var(--r0)) scale(.7);
+  }
   input { transition: none; }
 }
