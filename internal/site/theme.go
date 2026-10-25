@@ -89,6 +89,7 @@ type themeVideo struct {
 type themeScene struct {
 	Name   string         `json:"name"`
 	Poster string         `json:"poster,omitempty"`
+	Flip   bool           `json:"flip,omitempty"` // mirrored left to right (video_flip)
 	Sizes  []themeVariant `json:"sizes"`
 }
 
@@ -128,10 +129,11 @@ type ThemeSettings struct {
 	Speed     float64 // 1 is normal
 	Opacity   float64
 	Spin      bool
-	Target    float64 // rise: how far across (0-100) they drift towards; -1 for straight up
-	Scene     string  // video_scene: random, or the name of one
-	Change    int     // video_change: seconds before moving on to the next scene; 0 for never
-	Quality   int     // video_quality: the largest size to send, by its short side (720, 1080...); 0 for any
+	Target    float64  // rise: how far across (0-100) they drift towards; -1 for straight up
+	Scene     string   // video_scene: random, or the name of one
+	Change    int      // video_change: seconds before moving on to the next scene; 0 for never
+	Quality   int      // video_quality: the largest size to send, by its short side (720, 1080...); 0 for any
+	Flip      []string // video_flip: scenes to mirror left to right; "all" for every one
 }
 
 func defaultSettings() ThemeSettings {
@@ -296,6 +298,18 @@ func (t *themeDir) refreshLocked(first bool) {
 			problems = append(problems, fmt.Sprintf("theme.conf: video_scene = %s, but there are no videos called that; "+
 				"picking one at random", s.Scene))
 			th.Settings.Scene = "random"
+		}
+		for _, name := range s.Flip {
+			if name != "all" && !hasScene(th.Scenes, name) {
+				problems = append(problems, fmt.Sprintf("theme.conf: video_flip names %s, but there are no videos called that", name))
+			}
+		}
+		for i := range th.Scenes {
+			for _, name := range s.Flip {
+				if name == "all" || name == th.Scenes[i].Name {
+					th.Scenes[i].Flip = true
+				}
+			}
 		}
 		js, _ := json.Marshal(struct {
 			Scene   string       `json:"scene"`
@@ -627,6 +641,22 @@ func parseThemeConf(data []byte) (ThemeSettings, []string) {
 				} else {
 					bad(key, val, "a number of seconds from 10 to 3600, or 0 for never")
 				}
+			}
+		case "video_flip", "flip":
+			s.Flip = nil
+			ok := true
+			for _, name := range strings.FieldsFunc(strings.ToLower(val), func(r rune) bool { return r == ',' || r == ' ' || r == '\t' }) {
+				switch {
+				case name == "none" || name == "no" || name == "off":
+				case name == "all" || sceneName.MatchString(name):
+					s.Flip = append(s.Flip, name)
+				default:
+					ok = false
+				}
+			}
+			if !ok {
+				s.Flip = nil
+				bad(key, val, "a list of your videos' names, like lich-king, night-elf-archer, or all")
 			}
 		case "video_quality", "video_max":
 			switch v := strings.ToLower(val); v {

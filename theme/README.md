@@ -70,6 +70,7 @@ explains every setting:
 | `particle_target` | `none` | Rising particles drift towards this point across the screen (`0` to `100`) and shrink into it |
 | `video_scene` | `random` | Which scene each visit starts on: `random`, or a scene's name like `lich-king` |
 | `video_change` | `0` | Seconds before fading to the next scene (`10` to `3600`); `0` stays on one |
+| `video_flip` | `none` | Scenes to show mirrored left to right, like `lich-king, night-elf-archer`, or `all` |
 | `video_quality` | `auto` | The largest size to send, by its shorter side: `720`, `1080`, `2160`. `auto` sends whatever suits the screen |
 
 How the particles move:
