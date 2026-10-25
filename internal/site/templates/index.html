@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en" data-v="{{.Asset}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Cfg.SiteName}}: create your account</title>
+<meta name="description" content="{{.Cfg.Tagline}}">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#081327">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{.Cfg.SiteName}}">
+<meta property="og:description" content="{{.Cfg.Tagline}}">
+{{- with .Cfg.PublicURL}}
+<meta property="og:url" content="{{.}}/">
+<link rel="canonical" href="{{.}}/">
+{{- end}}
+<link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg?v={{.Asset}}">
+<link rel="preload" as="font" type="font/ttf" href="/static/fonts/CinzelDecorative-Bold.ttf" crossorigin>
+<link rel="preload" as="font" type="font/woff" href="/static/fonts/alegreya-sans-regular.woff" crossorigin>
+<link rel="stylesheet" href="/static/css/site.css?v={{.Asset}}">
+<script src="/static/js/site.js?v={{.Asset}}" defer></script>
+</head>
+<body>
+<a class="skip" href="#account">Skip to the account form</a>
+
+<header class="masthead">
+  <div class="wrap masthead-in">
+    <a class="brand" href="#top"><img src="/static/img/emblem.svg?v={{.Asset}}" alt="" width="40" height="40"><span class="sr">{{.Cfg.SiteName}}, back to the top</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#menu"></use></svg>
+      <span class="sr">Menu</span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Page sections">
+      <a href="#account">{{if .Cfg.Registration}}Sign up{{else}}Account{{end}}</a>
+      <a href="#connect">How to connect</a>
+      {{- if or .Cfg.ShowOnline .Cfg.ShowTop}}
+      <a href="#players">Players</a>
+      {{- end}}
+      {{- if .Content.about}}
+      <a href="#about">About</a>
+      {{- end}}
+      {{- if .Content.bots}}
+      <a href="#bots">Bots</a>
+      {{- end}}
+      {{- if .Content.rules}}
+      <a href="#rules">Rules</a>
+      {{- end}}
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" aria-labelledby="realm-title">
+  <div class="sky" aria-hidden="true"></div>
+  <div class="snow" aria-hidden="true"></div>
+  <div class="peaks" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1 id="realm-title" class="realm-name">{{.Cfg.SiteName}}</h1>
+      {{- with .Cfg.Tagline}}
+      <p class="tagline">{{.}}</p>
+      {{- end}}
+      {{template "plaque" .}}
+    </div>
+    {{template "account" .}}
+  </div>
+</section>
+
+<section id="connect" class="band" aria-labelledby="connect-title">
+  <div class="wrap">
+    <h2 id="connect-title">How to connect</h2>
+    <ol class="steps">
+      <li>
+        <h3>Get the game</h3>
+        {{- if .Cfg.DownloadURL}}
+        <p>Download our ready-to-play Wrath of the Lich King client, version {{.Cfg.GameVersion}}, and unpack it somewhere outside Program Files.</p>
+        <p><a class="btn btn-ghost" href="{{.Cfg.DownloadURL}}" rel="nofollow"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#download"></use></svg>Download the client</a></p>
+        {{- else}}
+        <p>You need the Wrath of the Lich King client, version {{.Cfg.GameVersion}}. Other versions can't connect.</p>
+        {{- end}}
+      </li>
+      <li>
+        <h3>Set your realmlist</h3>
+        {{- if .Cfg.Realmlist}}
+        <p>Open <code>realmlist.wtf</code> in Notepad. It's in the game folder, under <code>Data/enUS</code> or, on a UK client, <code>Data/enGB</code>. Replace everything in it with this line:</p>
+        {{template "realmlist" (dict "ID" "realmlist" "Line" .Cfg.Realmlist "Asset" .Asset)}}
+        {{- else}}
+        <p>Ask the server's admin for the realmlist address, and put it in <code>Data/enUS/realmlist.wtf</code> in the game folder.</p>
+        {{- end}}
+      </li>
+      <li>
+        <h3>Log in</h3>
+        <p>Start <code>Wow.exe</code> from the game folder, not the launcher, and log in with the username and password you chose here.</p>
+      </li>
+    </ol>
+    {{- with .Content.connect}}
+    <div class="prose tips">{{.}}</div>
+    {{- end}}
+  </div>
+</section>
+
+{{- if or .Cfg.ShowOnline .Cfg.ShowTop}}
+<div id="players" class="band band-alt">
+  <div class="wrap players{{if and .Cfg.ShowOnline .Cfg.ShowTop}} players-two{{end}}">
+    {{- if .Cfg.ShowOnline}}
+    <section aria-labelledby="online-title">
+      <h2 id="online-title">Who's online</h2>
+      {{template "online" .}}
+    </section>
+    {{- end}}
+    {{- if .Cfg.ShowTop}}
+    <section aria-labelledby="top-title">
+      <h2 id="top-title">Top players</h2>
+      {{template "top" .}}
+    </section>
+    {{- end}}
+  </div>
+</div>
+{{- end}}
+
+{{- with .Content.about}}
+<section id="about" class="band">
+  <div class="wrap prose">{{.}}</div>
+</section>
+{{- end}}
+
+{{- with .Content.bots}}
+<section id="bots" class="band band-alt">
+  <div class="wrap prose">{{.}}</div>
+</section>
+{{- end}}
+
+{{- with .Content.rules}}
+<section id="rules" class="band">
+  <div class="wrap prose">{{.}}</div>
+</section>
+{{- end}}
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p>{{.Cfg.SiteName}} is a private, fan-run server. World of Warcraft and Wrath of the Lich King are trademarks of Blizzard Entertainment, Inc. This site isn't made or endorsed by Blizzard.</p>
+    <p>Runs on <a href="https://www.azerothcore.org/">AzerothCore</a>.</p>
+  </div>
+</footer>
+{{- if .Cfg.Demo}}
+<p class="demo-pill">Demo mode: no real accounts are made</p>
+{{- end}}
+<div id="announce" class="sr" aria-live="polite"></div>
+</body>
+</html>
+
+{{- /* ---------------------------------------------------------------------
+     Pieces. "plaque", "online" and "top" are also served on their own by
+     /api/live so the page can refresh them; each keeps its id.
+   --------------------------------------------------------------------- */ -}}
+
+{{define "live"}}{{template "plaque" .}}{{if .Cfg.ShowOnline}}{{template "online" .}}{{end}}{{if .Cfg.ShowTop}}{{template "top" .}}{{end}}{{end}}
+
+{{define "plaque"}}
+<div id="realm-plaque" class="plaque frame">
+  <table class="realmlist">
+    <caption class="sr">Realm status</caption>
+    <thead><tr><th scope="col">Realm</th><th scope="col">Type</th><th scope="col">Population</th></tr></thead>
+    <tbody><tr>
+      <td class="realm">{{.Status.Realm}}</td>
+      <td>{{.Status.Type}}</td>
+      <td class="pop pop-{{.Status.PopKey}}">{{.Status.Population}}</td>
+    </tr></tbody>
+  </table>
+  <p class="summary">{{.Status.Summary}}</p>
+</div>
+{{end}}
+
+{{define "online"}}
+<div id="online-list" class="roster">
+  {{- if .Status.Online}}
+  <p class="note">{{if .Status.Bots}}Players only, not the {{commas .Status.Bots}} bots.{{else}}Everyone in the world right now.{{end}}</p>
+  <table class="who">
+    <thead><tr><th scope="col">Name</th><th scope="col" class="num">Level</th><th scope="col" class="wide">Race</th><th scope="col" class="wide">Class</th><th scope="col" class="wide">Faction</th></tr></thead>
+    <tbody>
+    {{- range .Status.Online}}
+      <tr><td><span class="char c-{{.ClassID}}">{{.Name}}</span><span class="sub">{{.Race}} {{.Class}}</span></td><td class="num">{{.Level}}</td><td class="wide">{{.Race}}</td><td class="wide">{{.Class}}</td><td class="wide fac fac-{{.Faction}}">{{.FactionName}}</td></tr>
+    {{- end}}
+    </tbody>
+  </table>
+  {{- else if not .Status.WorldUp}}
+  <p class="empty">The realm is offline, so nobody's on.</p>
+  {{- else if not .Status.Known}}
+  <p class="empty">The player list isn't available just now.</p>
+  {{- else if .Status.Bots}}
+  <p class="empty">No players on right now. The {{commas .Status.Bots}} bots have the world to themselves.</p>
+  {{- else}}
+  <p class="empty">No players on right now.</p>
+  {{- end}}
+</div>
+{{end}}
+
+{{define "top"}}
+<div id="top-list" class="roster">
+  {{- if .Status.Top}}
+  <p class="note">Highest level first, then most time played.</p>
+  <ol class="ladder">
+    {{- range .Status.Top}}
+    <li><span class="char c-{{.ClassID}}">{{.Name}}</span><span class="what">Level {{.Level}} {{.Race}} {{.Class}}</span>{{with .Played}}<span class="played">{{.}} played</span>{{end}}</li>
+    {{- end}}
+  </ol>
+  {{- else if .Status.Known}}
+  <p class="empty">No characters yet. Yours could be the first.</p>
+  {{- else}}
+  <p class="empty">The list isn't available just now.</p>
+  {{- end}}
+</div>
+{{end}}
+
+{{define "realmlist"}}
+<div class="cmd">
+  <code id="{{.ID}}">set realmlist {{.Line}}</code>
+  <button class="btn btn-copy" type="button" data-copy="{{.ID}}"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#copy"></use></svg><span class="label">Copy</span></button>
+</div>
+{{end}}
+
+{{define "account"}}
+<div id="account" class="account frame">
+  <h2 class="sr">Your account</h2>
+  {{- $both := and .Cfg.Registration .Cfg.ChangePassword}}
+  {{- if $both}}
+  <div class="tabs" role="tablist" aria-label="Account">
+    <button type="button" role="tab" class="tab" id="tab-register" aria-controls="pane-register" aria-selected="true">Create account</button>
+    <button type="button" role="tab" class="tab" id="tab-password" aria-controls="pane-password" aria-selected="false" tabindex="-1" data-hash="change-password">Change password</button>
+  </div>
+  {{- end}}
+  <noscript><p class="alert">The forms here need JavaScript. Please turn it on for this site.</p></noscript>
+
+  {{- if .Cfg.Registration}}
+  <div id="pane-register" class="pane"{{if $both}} role="tabpanel" aria-labelledby="tab-register"{{end}}>
+    {{- if not $both}}
+    <h3 class="pane-title">Create an account</h3>
+    {{- end}}
+    <form id="register-form" class="form" action="/api/register" method="post" novalidate data-kind="register" data-min="{{.MinPassword}}">
+      <div class="field">
+        <label for="r-username">Username</label>
+        <input id="r-username" name="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" minlength="3" maxlength="16" required aria-describedby="r-username-hint r-username-error">
+        <p class="hint" id="r-username-hint">3 to 16 letters or digits. You log in with this, not your character's name.</p>
+        <p class="error" id="r-username-error" hidden></p>
+      </div>
+      <div class="field">
+        <label for="r-email">Email</label>
+        <input id="r-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required aria-describedby="r-email-hint r-email-error">
+        <p class="hint" id="r-email-hint">Kept private. It's only used if you need help with your account.</p>
+        <p class="error" id="r-email-error" hidden></p>
+      </div>
+      <div class="field">
+        <label for="r-password">Password</label>
+        <div class="pw">
+          <input id="r-password" name="password" type="password" autocomplete="new-password" minlength="{{.MinPassword}}" maxlength="16" required aria-describedby="r-password-hint r-password-error">
+          <button class="reveal" type="button" aria-controls="r-password" aria-pressed="false" aria-label="Show password"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#eye"></use></svg></button>
+        </div>
+        <p class="hint" id="r-password-hint">{{.MinPassword}} to 16 characters, no spaces. The game ignores capital letters in passwords.</p>
+        <p class="error" id="r-password-error" hidden></p>
+      </div>
+      <div class="field">
+        <label for="r-password2">Confirm password</label>
+        <div class="pw">
+          <input id="r-password2" name="password2" type="password" autocomplete="new-password" maxlength="16" required aria-describedby="r-password2-error">
+          <button class="reveal" type="button" aria-controls="r-password2" aria-pressed="false" aria-label="Show password"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#eye"></use></svg></button>
+        </div>
+        <p class="error" id="r-password2-error" hidden></p>
+      </div>
+      <div class="trap" aria-hidden="true">
+        <label for="r-website">Leave this empty</label>
+        <input id="r-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <p class="alert" role="alert" hidden></p>
+      <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span class="label">Create account</span></button>
+    </form>
+    <div class="done" hidden>
+      <h3 class="done-title" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#check"></use></svg><span data-done-message>Your account is ready.</span></h3>
+      {{- if .Cfg.Realmlist}}
+      <p>To play, point your game at the realm with this line in <code>realmlist.wtf</code>:</p>
+      {{template "realmlist" (dict "ID" "realmlist-done" "Line" .Cfg.Realmlist "Asset" .Asset)}}
+      {{- end}}
+      <p>Then start <code>Wow.exe</code> and log in as <strong data-done-user></strong>.</p>
+      <p class="done-links"><a href="#connect">All the setup steps</a><button type="button" class="linklike" data-again>Make another account</button></p>
+    </div>
+  </div>
+  {{- end}}
+
+  {{- if .Cfg.ChangePassword}}
+  <div id="pane-password" class="pane"{{if $both}} role="tabpanel" aria-labelledby="tab-password" hidden{{end}}>
+    {{- if not $both}}
+    {{- if not .Cfg.Registration}}
+    <p class="closed">Sign-ups are closed at the moment.</p>
+    {{- end}}
+    <h3 class="pane-title">Change your password</h3>
+    {{- end}}
+    <form id="password-form" class="form" action="/api/password" method="post" novalidate data-kind="password" data-min="{{.MinPassword}}">
+      <div class="field">
+        <label for="p-username">Username</label>
+        <input id="p-username" name="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="32" required aria-describedby="p-username-error">
+        <p class="error" id="p-username-error" hidden></p>
+      </div>
+      <div class="field">
+        <label for="p-password">Current password</label>
+        <div class="pw">
+          <input id="p-password" name="password" type="password" autocomplete="current-password" maxlength="64" required aria-describedby="p-password-error">
+          <button class="reveal" type="button" aria-controls="p-password" aria-pressed="false" aria-label="Show password"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#eye"></use></svg></button>
+        </div>
+        <p class="error" id="p-password-error" hidden></p>
+      </div>
+      <div class="field">
+        <label for="p-new">New password</label>
+        <div class="pw">
+          <input id="p-new" name="newPassword" type="password" autocomplete="new-password" minlength="{{.MinPassword}}" maxlength="16" required aria-describedby="p-new-hint p-new-error">
+          <button class="reveal" type="button" aria-controls="p-new" aria-pressed="false" aria-label="Show password"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#eye"></use></svg></button>
+        </div>
+        <p class="hint" id="p-new-hint">{{.MinPassword}} to 16 characters, no spaces.</p>
+        <p class="error" id="p-new-error" hidden></p>
+      </div>
+      <div class="field">
+        <label for="p-new2">Confirm new password</label>
+        <div class="pw">
+          <input id="p-new2" name="newPassword2" type="password" autocomplete="new-password" maxlength="16" required aria-describedby="p-new2-error">
+          <button class="reveal" type="button" aria-controls="p-new2" aria-pressed="false" aria-label="Show password"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#eye"></use></svg></button>
+        </div>
+        <p class="error" id="p-new2-error" hidden></p>
+      </div>
+      <p class="alert" role="alert" hidden></p>
+      <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span class="label">Change password</span></button>
+    </form>
+  </div>
+  {{- end}}
+
+  {{- if not (or .Cfg.Registration .Cfg.ChangePassword)}}
+  <p class="closed">Sign-ups are closed at the moment.</p>
+  {{- end}}
+</div>
+{{end}}
