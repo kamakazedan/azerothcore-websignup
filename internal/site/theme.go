@@ -132,6 +132,7 @@ type ThemeSettings struct {
 	Target    float64  // rise: how far across (0-100) they drift towards; -1 for straight up
 	Scene     string   // video_scene: random, or the name of one
 	Change    int      // video_change: seconds before moving on to the next scene; 0 for never
+	Preload   int      // video_preload: how early the next scene starts loading, as a percentage of Change
 	Quality   int      // video_quality: the largest size to send, by its short side (720, 1080...); 0 for any
 	Flip      []string // video_flip: scenes to mirror left to right; "all" for every one
 }
@@ -140,7 +141,7 @@ func defaultSettings() ThemeSettings {
 	return ThemeSettings{
 		Focus: "50% 40%", Shade: .35, Motion: "none", PageShade: .75,
 		Particles: "", Count: 18, SizeMin: 12, SizeMax: 36, Speed: 1, Opacity: .9, Spin: true, Target: -1,
-		Scene: "random",
+		Scene: "random", Preload: 50,
 	}
 }
 
@@ -314,9 +315,10 @@ func (t *themeDir) refreshLocked(first bool) {
 		js, _ := json.Marshal(struct {
 			Scene   string       `json:"scene"`
 			Change  int          `json:"change"`
+			Preload int          `json:"preload"`
 			Quality int          `json:"quality"`
 			Scenes  []themeScene `json:"scenes"`
-		}{th.Settings.Scene, s.Change, s.Quality, th.Scenes})
+		}{th.Settings.Scene, s.Change, s.Preload, s.Quality, th.Scenes})
 		th.Video = string(js)
 	}
 
@@ -657,6 +659,12 @@ func parseThemeConf(data []byte) (ThemeSettings, []string) {
 			if !ok {
 				s.Flip = nil
 				bad(key, val, "a list of your videos' names, like lich-king, night-elf-archer, or all")
+			}
+		case "video_preload", "preload":
+			if n, err := strconv.Atoi(strings.TrimSpace(strings.TrimSuffix(val, "%"))); err == nil && n >= 0 && n <= 100 {
+				s.Preload = n
+			} else {
+				bad(key, val, "a percentage from 0 to 100")
 			}
 		case "video_quality", "video_max":
 			switch v := strings.ToLower(val); v {

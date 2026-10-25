@@ -201,7 +201,7 @@
 {{define "online"}}
 <div id="online-list" class="roster">
   {{- if .Status.Online}}
-  <p class="note">{{if .Status.Bots}}Players only, not the {{commas .Status.Bots}} bots.{{else}}Everyone in the world right now.{{end}}</p>
+  <p class="note">{{if .Status.Bots}}Players only, not the {{commas .Status.Bots}} AI players.{{else}}Everyone in the world right now.{{end}}</p>
   <table class="who">
     <thead><tr><th scope="col">Name</th><th scope="col" class="num">Level</th><th scope="col" class="wide">Race</th><th scope="col" class="wide">Class</th><th scope="col" class="wide">Faction</th></tr></thead>
     <tbody>
@@ -215,7 +215,7 @@
   {{- else if not .Status.Known}}
   <p class="empty">The player list isn't available just now.</p>
   {{- else if .Status.Bots}}
-  <p class="empty">No players on right now. The {{commas .Status.Bots}} bots have the world to themselves.</p>
+  <p class="empty">No players on right now. The {{commas .Status.Bots}} AI players have the world to themselves.</p>
   {{- else}}
   <p class="empty">No players on right now.</p>
   {{- end}}

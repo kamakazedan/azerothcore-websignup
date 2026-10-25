@@ -120,17 +120,20 @@
         }).observe(backdrop);
       }
       doc.addEventListener('visibilitychange', sync);
-      // Moving on: the next scene starts loading a little before it's due
-      // (unless the browser is saving data), so it's ready to fade in.
+      // Moving on: the next scene starts loading ahead of time, by
+      // video_preload percent of video_change (unless the browser is saving
+      // data, or it's set to 0), so it's ready to fade in.
       let next = null;
       const live = () => shown && doc.visibilityState === 'visible';
       if (cfg.change > 0 && scenes.length > 1) {
         const every = cfg.change * 1000;
-        const lead = Math.min(20000, every / 2);
+        const lead = every * Math.min(Math.max(cfg.preload || 0, 0), 100) / 100;
         const cycle = () => {
-          setTimeout(() => {
-            if (!next && !thrifty && live()) next = make(scenes[(i + 1) % scenes.length]);
-          }, every - lead);
+          if (lead > 0) {
+            setTimeout(() => {
+              if (!next && !thrifty && live()) next = make(scenes[(i + 1) % scenes.length]);
+            }, every - lead);
+          }
           setTimeout(() => {
             if (live()) {
               i = (i + 1) % scenes.length;
