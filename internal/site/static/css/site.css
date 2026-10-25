@@ -290,6 +290,7 @@ code {
   transition: opacity 2s ease;
 }
 .sky-video video.on { opacity: 1; }
+.sky-video video.flip { transform: scaleX(-1); }
 /* On a phone held upright the form makes the top of the page tall, so the
    video fills the screen rather than the whole of it, and fades out below. */
 @media (orientation: portrait) and (max-width: 999px) {

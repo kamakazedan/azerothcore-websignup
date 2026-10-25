@@ -60,6 +60,7 @@
       v.preload = 'auto';
       v.tabIndex = -1;
       v.disablePictureInPicture = true;
+      if (scene.flip) v.classList.add('flip');
       if (scene.poster) v.poster = scene.poster;
       for (const s of sizeFor(scene).src) {
         const source = doc.createElement('source');
