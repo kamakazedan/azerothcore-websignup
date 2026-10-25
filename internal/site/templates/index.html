@@ -69,12 +69,8 @@
 <section class="hero" aria-labelledby="realm-title">
   {{- $motion := ""}}{{if ne .Theme.Settings.Motion "none"}}{{$motion = printf " motion-%s" .Theme.Settings.Motion}}{{end}}
   <div class="sky{{$motion}}" aria-hidden="true"></div>
-  {{- if .Theme.Videos}}
-  <video class="sky-video{{$motion}}" autoplay muted loop playsinline aria-hidden="true" tabindex="-1"{{with .Theme.Background}} poster="{{.}}"{{end}}>
-    {{- range .Theme.Videos}}
-    <source src="{{.URL}}" type="{{.Type}}">
-    {{- end}}
-  </video>
+  {{- with .Theme.Video}}
+  <div class="sky-video{{$motion}}" data-video="{{.}}" aria-hidden="true"></div>
   {{- end}}
   <div class="shade" aria-hidden="true"></div>
   {{- if .Theme.Slots}}
@@ -301,9 +297,10 @@
         <input id="r-website" name="website" type="text" tabindex="-1" autocomplete="off">
       </div>
       <p class="alert" role="alert" hidden></p>
-      <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span class="label">Create account</span></button>
+      <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span class="label">Begin your journey</span></button>
     </form>
     <div class="done" hidden>
+      <p class="done-kicker">Your journey begins</p>
       <h3 class="done-title" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#check"></use></svg><span data-done-message>Your account is ready.</span></h3>
       {{- if and .Cfg.DownloadURL .Cfg.ClientHasRealmlist}}
       <p>Start <code>Wow.exe</code> and log in as <strong data-done-user></strong>. Our client already points at the realm.</p>

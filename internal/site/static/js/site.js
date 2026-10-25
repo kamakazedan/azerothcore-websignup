@@ -14,6 +14,136 @@
     setTimeout(() => { announcer.textContent = text; }, 50);
   };
 
+  // ---------------------------------------------------- video backdrop
+  // The server lists the theme's videos as scenes, each in the sizes there
+  // are of it. Pick a scene, then the smallest size that still covers the
+  // backdrop sharply: the portrait one on a phone held upright, 1080p on
+  // most desktops, 4K only on screens that need it. Nothing loads for
+  // people who've asked for less motion, or whose browser is saving data.
+  const backdrop = doc.querySelector('.sky-video[data-video]');
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (backdrop && !still.matches) {
+    let cfg = null;
+    try { cfg = JSON.parse(backdrop.dataset.video); } catch (_) { /* no video, then */ }
+    const scenes = (cfg && cfg.scenes) || [];
+    const conn = navigator.connection || {};
+    const thrifty = !!conn.saveData || /(^|-)2g$/.test(conn.effectiveType || '');
+
+    const sizeFor = (scene) => {
+      const r = backdrop.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const want = [r.width * dpr, r.height * dpr];
+      const upright = r.height > r.width;
+      let sizes = scene.sizes;
+      if (cfg.quality) {
+        const capped = sizes.filter((v) => !v.w || Math.min(v.w, v.h) <= cfg.quality);
+        sizes = capped.length ? capped : sizes.slice(0, 1);
+      }
+      const sized = sizes.filter((v) => v.w);
+      if (!sized.length) return sizes[0];
+      const turned = sized.filter((v) => (v.h > v.w) === upright);
+      const pool = turned.length ? turned : sized;
+      if (thrifty) return pool[0];
+      // Up to 15% stretched still looks sharp in motion.
+      return pool.find((v) => Math.max(want[0] / v.w, want[1] / v.h) <= 1.15) || pool[pool.length - 1];
+    };
+
+    const play = (scene, first) => {
+      const v = doc.createElement('video');
+      v.muted = true;
+      v.defaultMuted = true;
+      v.setAttribute('muted', '');
+      v.playsInline = true;
+      v.setAttribute('playsinline', '');
+      v.loop = true;
+      v.autoplay = true;
+      v.preload = 'auto';
+      v.tabIndex = -1;
+      v.disablePictureInPicture = true;
+      if (scene.poster) v.poster = scene.poster;
+      for (const s of sizeFor(scene).src) {
+        const source = doc.createElement('source');
+        source.src = s.url;
+        source.type = s.type;
+        v.append(source);
+      }
+      const old = backdrop.querySelector('video.on');
+      // The first scene shows its picture at once; later ones fade in over
+      // the last once they're actually moving.
+      if (first && scene.poster) v.classList.add('on');
+      v.addEventListener('playing', () => {
+        v.classList.add('on');
+        if (old && old !== v) {
+          old.classList.remove('on');
+          setTimeout(() => old.remove(), 2500);
+        }
+      }, { once: true });
+      backdrop.append(v);
+      v.play().catch(() => { /* blocked (battery saver, say): the picture stays */ });
+      return v;
+    };
+
+    if (scenes.length) {
+      let i = scenes.findIndex((s) => s.name === cfg.scene);
+      if (i < 0) i = Math.floor(Math.random() * scenes.length);
+      let current = play(scenes[i], true);
+      let shown = true;
+      // Only spend the processor on it while it can be seen.
+      const sync = () => {
+        const v = backdrop.querySelector('video.on') || current;
+        if (shown && doc.visibilityState === 'visible') v.play().catch(() => {});
+        else v.pause();
+      };
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver((entries) => {
+          shown = entries[entries.length - 1].isIntersecting;
+          sync();
+        }).observe(backdrop);
+      }
+      doc.addEventListener('visibilitychange', sync);
+      if (cfg.change > 0 && scenes.length > 1) {
+        setInterval(() => {
+          if (!shown || doc.visibilityState !== 'visible') return;
+          i = (i + 1) % scenes.length;
+          current = play(scenes[i], false);
+        }, cfg.change * 1000);
+      }
+      // A phone turned on its side wants the other shape of video.
+      let upright = innerHeight > innerWidth;
+      window.addEventListener('resize', () => {
+        const now = innerHeight > innerWidth;
+        if (now === upright) return;
+        upright = now;
+        current = play(scenes[i], false);
+      });
+    }
+  }
+
+  // ----------------------------------------------------------- tagline
+  // One line, however long the tagline: shrink it until it fits its
+  // column, and only let it wrap if it would be too small to read.
+  const tagline = doc.querySelector('.tagline');
+  if (tagline) {
+    const fit = () => {
+      tagline.classList.remove('wraps');
+      tagline.style.removeProperty('--fit');
+      const full = parseFloat(getComputedStyle(tagline).fontSize);
+      const room = tagline.clientWidth;
+      const need = tagline.scrollWidth;
+      if (need <= room) return;
+      const size = Math.floor(full * room / need * 10) / 10;
+      if (size < 12) tagline.classList.add('wraps');
+      else tagline.style.setProperty('--fit', `${size}px`);
+    };
+    fit();
+    if (doc.fonts) doc.fonts.ready.then(fit);
+    let pending = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(fit);
+    });
+  }
+
   // ------------------------------------------------------------ menu
   const toggle = doc.querySelector('.menu-toggle');
   const nav = doc.getElementById('site-nav');
