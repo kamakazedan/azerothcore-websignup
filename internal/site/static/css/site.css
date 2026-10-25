@@ -276,12 +276,30 @@ code {
     radial-gradient(45% 40% at 10% 0%, rgba(40, 80, 140, .18), transparent 70%),
     linear-gradient(180deg, #03060c 0%, #071226 58%, var(--night) 100%);
 }
-.sky-video {
-  z-index: -4;
+/* The page's script puts the chosen scene's <video> in here, and fades
+   from one scene to the next. */
+.sky-video { z-index: -4; overflow: hidden; }
+.sky-video video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: var(--hero-focus, 50% 40%);
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+.sky-video video.on { opacity: 1; }
+/* On a phone held upright the form makes the top of the page tall, so the
+   video fills the screen rather than the whole of it, and fades out below. */
+@media (orientation: portrait) and (max-width: 999px) {
+  .sky-video {
+    bottom: auto;
+    height: min(100%, 100vh);
+    height: min(100%, 100svh);
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent);
+    mask-image: linear-gradient(180deg, #000 70%, transparent);
+  }
 }
 .shade {
   z-index: -3;
@@ -384,14 +402,29 @@ code {
   }
 }
 
+/* Set in Cinzel, like an inscription, with a gilded rule beneath. */
 .tagline {
-  max-width: 30ch;
+  max-width: 34ch;
   margin-bottom: 28px;
-  font-size: 1.3125rem;
-  font-style: italic;
-  line-height: 1.4;
-  color: #c3d4e6;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .8);
+  font-family: var(--font-head);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: .08em;
+  color: #e6d6a8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 18px rgba(0, 0, 0, .6);
+}
+.tagline::after {
+  content: "";
+  display: block;
+  width: min(220px, 60%);
+  height: 1px;
+  margin-top: 18px;
+  background: linear-gradient(90deg, var(--gold-soft), rgba(233, 196, 106, 0));
+  box-shadow: 0 0 8px rgba(233, 196, 106, .45);
+}
+@media (min-width: 768px) {
+  .tagline { font-size: 1.25rem; }
 }
 
 @media (min-width: 1000px) {
@@ -444,8 +477,11 @@ code {
 }
 
 /* -------------------------------------------------------- account panel */
+/* Edged in gold, with a gilded seam and a stud across the top. */
 .account {
   --cut: 18px;
+  --line: rgba(233, 196, 106, .34);
+  position: relative;
   width: 100%;
   max-width: 560px; /* a tablet doesn't need a form the width of the screen */
   padding: 20px 20px 24px;
@@ -454,6 +490,27 @@ code {
 }
 @media (min-width: 480px) {
   .account { padding: 24px 28px 30px; }
+}
+.account::before,
+.account::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  pointer-events: none;
+}
+.account::before {
+  width: 70%;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, rgba(233, 196, 106, 0), var(--gold-soft), rgba(233, 196, 106, 0));
+}
+.account::after {
+  width: 9px;
+  height: 9px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--gold-soft);
+  box-shadow: 0 0 10px rgba(233, 196, 106, .7);
 }
 
 .tabs {
@@ -467,9 +524,13 @@ code {
   padding: 12px 8px 14px;
   background: none;
   border: 0;
-  font-weight: 700;
+  font: 700 .9375rem/1.3 var(--font-head);
+  letter-spacing: .06em;
   color: var(--steel);
   cursor: pointer;
+}
+@media (max-width: 479px) {
+  .tab { font-size: .8125rem; letter-spacing: .03em; }
 }
 .tab:hover { color: var(--rime); }
 .tab[aria-selected="true"] { color: #fff; }
@@ -497,8 +558,9 @@ code {
 
 label {
   display: block;
-  margin-bottom: 6px;
-  font-weight: 700;
+  margin-bottom: 7px;
+  font: 700 .875rem/1.3 var(--font-head);
+  letter-spacing: .07em;
   color: var(--gold-soft);
 }
 
@@ -511,18 +573,25 @@ input[type="password"] {
   padding: 10px 14px;
   font: inherit;
   color: #f2f9ff;
-  background: var(--well);
+  background: linear-gradient(180deg, #02040a, var(--well) 40%);
   border: 1px solid rgba(143, 211, 255, .26);
-  border-radius: 4px;
-  transition: border-color .15s;
+  border-radius: 3px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6);
+  transition: border-color .15s, box-shadow .2s;
 }
 input:hover { border-color: rgba(143, 211, 255, .45); }
+/* Focus lights the field in gold. */
 input:focus-visible {
-  outline: 2px solid var(--frost);
-  outline-offset: 1px;
-  border-color: var(--frost);
+  outline: 1px solid var(--gold-soft);
+  outline-offset: 0;
+  border-color: var(--gold-soft);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6), 0 0 0 3px rgba(233, 196, 106, .18), 0 0 18px rgba(233, 196, 106, .3);
 }
-input[aria-invalid="true"] { border-color: var(--bad); }
+input[aria-invalid="true"] {
+  border-color: var(--bad);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6), 0 0 14px rgba(255, 107, 94, .25);
+}
+input[aria-invalid="true"]:focus-visible { outline-color: var(--bad); }
 input:-webkit-autofill {
   -webkit-text-fill-color: #f2f9ff;
   caret-color: #f2f9ff;
@@ -557,10 +626,22 @@ input:-webkit-autofill {
   color: var(--rime-dim);
 }
 .error {
-  margin-top: 6px;
+  position: relative;
+  margin-top: 8px;
+  padding-left: 18px;
   font-size: .9375rem;
   line-height: 1.45;
   color: var(--bad);
+}
+.error::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: .5em;
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  transform: rotate(45deg);
 }
 
 .trap {
@@ -575,12 +656,12 @@ input:-webkit-autofill {
   margin-top: 20px;
   padding: 12px 14px;
   border-left: 3px solid var(--bad);
-  background: rgba(255, 107, 94, .09);
+  background: linear-gradient(90deg, rgba(255, 107, 94, .14), rgba(255, 107, 94, .04));
   color: #ffd9d4;
 }
 .alert.ok {
   border-left-color: var(--ok);
-  background: rgba(111, 227, 154, .08);
+  background: linear-gradient(90deg, rgba(111, 227, 154, .12), rgba(111, 227, 154, .03));
   color: #d9ffe8;
 }
 noscript .alert { margin: 0 0 20px; }
@@ -603,9 +684,13 @@ noscript .alert { margin: 0 0 20px; }
 
 /* The game's own call to action: deep blue, bevelled, gold lettering. */
 .btn-primary {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  margin-top: 24px;
-  font-size: 1.125rem;
+  min-height: 52px;
+  margin-top: 26px;
+  font: 700 1.0625rem/1.1 var(--font-head);
+  letter-spacing: .08em;
   color: var(--gold);
   text-shadow: 0 1px 0 rgba(0, 0, 0, .7);
   background: linear-gradient(180deg, #2c5e9b 0%, #183c6d 50%, #0c2246 100%);
@@ -619,7 +704,33 @@ noscript .alert { margin: 0 0 20px; }
   background: linear-gradient(180deg, #3670b4 0%, #1d4880 50%, #0f2a55 100%);
 }
 .btn-primary:active { transform: translateY(1px); }
-.btn-primary[disabled] { cursor: progress; opacity: .85; }
+.btn-primary:focus-visible {
+  outline: 2px solid var(--gold-soft);
+  outline-offset: 3px;
+}
+/* A glint passes over it on hover; while the anti-bot check and the
+   request run, light sweeps along its foot. */
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 236, 170, .22) 50%, transparent 65%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.btn-primary:hover::after { transform: translateX(120%); transition: transform .9s ease; }
+.btn-primary[disabled] { cursor: progress; }
+.btn-primary[disabled]::after {
+  inset: auto 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  box-shadow: 0 0 10px var(--gold);
+  animation: btn-sweep 1.4s ease-in-out infinite;
+}
+@keyframes btn-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
 
 .btn-ghost {
   color: var(--frost-hi);
@@ -1018,6 +1129,7 @@ noscript .alert { margin: 0 0 20px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .spin,
+  .btn-primary[disabled]::after,
   .motion-zoom,
   .motion-drift { animation: none; }
   .sky-video { display: none; }
@@ -1026,4 +1138,10 @@ noscript .alert { margin: 0 0 20px; }
   .particles-rise i { transform: translate3d(calc(var(--dx) * .4), calc(var(--still) * -1cqh), 0) rotate(var(--r0)); }
   .particles-fall i { transform: translate3d(0, calc(var(--still) * 1cqh), 0) rotate(var(--r0)); }
   input { transition: none; }
+  .btn-primary:hover::after { transition: none; transform: translateX(-120%); }
+}
+
+/* Windows high contrast drops the glows: keep a plain outline. */
+@media (forced-colors: active) {
+  input:focus-visible { outline: 2px solid; }
 }
