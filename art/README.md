@@ -1,9 +1,8 @@
 # The built-in background
 
 `background.py` paints the picture the top of the page shows when the
-theme folder has no `background.jpg` of its own: a lone knight in a
-blizzard on a frozen plain, ice spires on the horizon and a cold glow
-behind the clouds.
+theme folder has no `background.jpg` of its own: a blizzard over a frozen
+plain, ice spires on the horizon and a cold glow behind the clouds.
 
 It's drawn entirely by the script, from polygons and noise: nothing is
 traced, copied or taken from a game, and no outside images are used. The
