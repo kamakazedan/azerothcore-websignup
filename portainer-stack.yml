@@ -1,18 +1,15 @@
 # The sign-up site as a Portainer stack.
 #
-# 1. Build the image once: Images > Build a new image. Name it
-#    azerothcore-websignup:latest, choose the URL build method, and enter
-#      https://github.com/kamakazedan/azerothcore-websignup.git
-#    with Dockerfile as the Dockerfile path. Build it again the same way to
-#    update the site, then use "Update the stack".
+# 1. The image is built by GitHub on every change to main, and published as
+#    ghcr.io/kamakazedan/azerothcore-websignup:latest. Nothing to build here.
 # 2. Stacks > Add stack > Web editor: paste this file.
 # 3. Under Environment variables, set at least DB_PASSWORD, SECRET_KEY and
 #    WEBSIGNUP_FILES (a folder on the server holding theme/ and content/).
 #    Anything else you leave out keeps its default; README.md lists them.
+# To update the site: open the stack, Update the stack, with Re-pull image on.
 services:
   websignup:
-    image: azerothcore-websignup:latest
-    pull_policy: never
+    image: ghcr.io/kamakazedan/azerothcore-websignup:latest
     container_name: ac-websignup
     restart: unless-stopped
     environment:

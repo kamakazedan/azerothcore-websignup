@@ -62,20 +62,18 @@ The site listens on port 8090 of the host. Point your reverse proxy at it
 
 ## Running it in Portainer
 
-Portainer doesn't reliably build images while it deploys a stack, so you
-build the image once, then a stack runs it.
+GitHub builds the image every time a change is merged, and publishes it
+as `ghcr.io/kamakazedan/azerothcore-websignup:latest`
+([.github/workflows/image.yml](.github/workflows/image.yml)). The stack
+pulls it from there, so there's nothing to build on your server.
 
 1. On the server, make a folder for your own files:
    `mkdir -p ~/websignup/theme ~/websignup/content`
 2. If you haven't yet, create the database user (step 2 of "Doing it by
    hand", or run `setup.sh` once).
-3. In Portainer, go to **Images → Build a new image**. Name it
-   `azerothcore-websignup:latest`, choose the **URL** build method, enter
-   `https://github.com/kamakazedan/azerothcore-websignup.git`, and leave
-   the Dockerfile path as `Dockerfile`. Build it.
-4. Go to **Stacks → Add stack**, call it `websignup`, choose **Web editor**
+3. Go to **Stacks → Add stack**, call it `websignup`, choose **Web editor**
    and paste in [`portainer-stack.yml`](portainer-stack.yml).
-5. Under **Environment variables**, add at least:
+4. Under **Environment variables**, add at least:
    - `DB_PASSWORD`: the `websignup` database user's password
    - `SECRET_KEY`: 64 hex characters (`openssl rand -hex 32`)
    - `WEBSIGNUP_FILES`: the folder from step 1, such as `/home/you/websignup`
@@ -83,15 +81,24 @@ build the image once, then a stack runs it.
    then whatever the page should say (`SITE_NAME`, `REALMLIST`,
    `CLIENT_DOWNLOAD_URL`, `PUBLIC_URL`, ...). The quick way is **Advanced
    mode**: paste in lines written like `.env.example`, comments and all.
-6. Click **Deploy the stack**.
+5. Click **Deploy the stack**.
 
-To update, build the image again (step 3), then open the stack and click
-**Update the stack**. Leave **Re-pull image** off: the image is only on
-your server, so there's nowhere to pull it from.
+To update after a change is merged, give GitHub a few minutes to build
+(the **Actions** tab shows it), then open the stack and click **Update the
+stack** with **Re-pull image** turned on. To have Portainer do that by
+itself, deploy the stack from **Repository** instead of the web editor
+(repository `https://github.com/kamakazedan/azerothcore-websignup`,
+compose path `portainer-stack.yml`) and turn on **GitOps updates**
+(polling), **Force redeployment** and **Re-pull image**. It then pulls the
+newest image every few minutes; forcing it means it also catches an image
+that finished building after the change itself was noticed.
+
+Only the site's code needs this. Files in the theme and content folders
+show up within seconds, with no update at all.
 
 ### Moving a `docker compose` install into Portainer
 
-1. Print the settings it uses, to paste in at step 5 above:
+1. Print the settings it uses, to paste in at step 4 above:
    `cat ~/azerothcore-websignup/.env`
 2. Remove the old container: in Portainer, **Containers**, tick
    `ac-websignup`, **Remove**. Or `cd ~/azerothcore-websignup && docker
