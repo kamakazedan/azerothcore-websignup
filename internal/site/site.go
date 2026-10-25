@@ -364,7 +364,7 @@ func census(players, bots int) string {
 	case bots > 0:
 		return b + "."
 	default:
-		return "The world awaits its first heroes."
+		return "The world turns, day and night. Your place in it is waiting."
 	}
 }
 

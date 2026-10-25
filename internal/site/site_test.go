@@ -209,7 +209,7 @@ func TestDescribe(t *testing.T) {
 	}{
 		{statusView{Known: true, WorldUp: true, AuthUp: true, Players: 1, Bots: 0}, true, "Low", "1 player in the world."},
 		{statusView{Known: true, WorldUp: true, AuthUp: true, Players: 0, Bots: 150, Uptime: "3h 2m"}, true, "Medium", "Up for 3h 2m. 150 AI players that never sleep."},
-		{statusView{Known: true, WorldUp: true, AuthUp: true}, true, "Low", "The world awaits its first heroes."},
+		{statusView{Known: true, WorldUp: true, AuthUp: true}, true, "Low", "The world turns, day and night. Your place in it is waiting."},
 		{statusView{Known: true, WorldUp: false, AuthUp: true}, true, "Offline", "The realm is offline right now. You can still make an account, ready for when it's back."},
 		{statusView{Known: true, WorldUp: false}, false, "Offline", "The realm is offline right now."},
 		{statusView{Known: true, WorldUp: true, AuthUp: false}, true, "Offline", "The login server is down, so nobody can log in right now."},
