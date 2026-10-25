@@ -33,6 +33,7 @@ particle_spin = no
 particle_target = 40%
 video_scene = Lich-King
 video_change = 45s
+video_preload = 25%
 video_quality = 1080p
 video_flip = Lich-King, night-elf-archer
 `))
@@ -41,7 +42,7 @@ video_flip = Lich-King, night-elf-archer
 	}
 	want := ThemeSettings{Focus: "50% 0%", Shade: .5, Motion: "zoom", PageShade: .8, Particles: "float", Count: 7,
 		SizeMin: 10, SizeMax: 50, Speed: 2, Opacity: .6, Spin: false, Target: 40,
-		Scene: "lich-king", Change: 45, Quality: 1080}
+		Scene: "lich-king", Change: 45, Preload: 25, Quality: 1080}
 	if strings.Join(s.Flip, ",") != "lich-king,night-elf-archer" {
 		t.Errorf("video_flip: %q", s.Flip)
 	}
@@ -143,7 +144,7 @@ func TestThemeFolder(t *testing.T) {
 			t.Errorf("page is missing %q", want)
 		}
 	}
-	want := `{"scene":"random","change":0,"quality":0,"scenes":[{"name":"background","poster":"/theme/background.jpg?v=` +
+	want := `{"scene":"random","change":0,"preload":50,"quality":0,"scenes":[{"name":"background","poster":"/theme/background.jpg?v=` +
 		th.Stamp + `","sizes":[{"w":0,"h":0,"src":[{"url":"/theme/background.webm?v=` + th.Stamp +
 		`","type":"video/webm"},{"url":"/theme/background.mp4?v=` + th.Stamp + `","type":"video/mp4"}]}]}]}`
 	if th.Video != want {
@@ -314,7 +315,7 @@ func TestScenes(t *testing.T) {
 	if lk.Flip || !ne.Flip || !strings.Contains(th.Video, `"flip":true`) {
 		t.Errorf("only night-elf-archer should be flipped: %v %v", lk.Flip, ne.Flip)
 	}
-	if !strings.Contains(th.Video, `"scene":"lich-king","change":30`) {
+	if !strings.Contains(th.Video, `"scene":"lich-king","change":30,"preload":50`) {
 		t.Errorf("settings missing from %s", th.Video)
 	}
 	out := logs.String()

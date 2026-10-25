@@ -131,7 +131,7 @@ func TestPage(t *testing.T) {
 		"set realmlist wow.example.com", `href="https://example.com/wow.7z"`,
 		`id="realm-plaque"`, `id="online-list"`, `id="top-list"`,
 		"What's running on Frosthold", // content token filled in
-		"Brelac", "c-paladin", "Players only, not the 1,214 bots.",
+		"Brelac", "c-paladin", "Players only, not the 1,214 AI players.",
 		`data-min="8"`, "Demo mode",
 	} {
 		if !strings.Contains(body, want) {
@@ -195,7 +195,7 @@ func TestLiveAndStatus(t *testing.T) {
 	if !st.Known || st.Population != "High" || st.Type != "PvE" || st.Bots != 1214 {
 		t.Errorf("status = %+v", st)
 	}
-	if !strings.Contains(st.Summary, "3 players and 1,214 bots in the world.") || !strings.HasPrefix(st.Summary, "Up for ") {
+	if !strings.Contains(st.Summary, "3 players online, alongside 1,214 AI players that never sleep.") || !strings.HasPrefix(st.Summary, "Up for ") {
 		t.Errorf("summary = %q", st.Summary)
 	}
 }
@@ -208,8 +208,8 @@ func TestDescribe(t *testing.T) {
 		summary string
 	}{
 		{statusView{Known: true, WorldUp: true, AuthUp: true, Players: 1, Bots: 0}, true, "Low", "1 player in the world."},
-		{statusView{Known: true, WorldUp: true, AuthUp: true, Players: 0, Bots: 150, Uptime: "3h 2m"}, true, "Medium", "Up for 3h 2m. 150 bots in the world, and no players yet."},
-		{statusView{Known: true, WorldUp: true, AuthUp: true}, true, "Low", "Nobody in the world yet."},
+		{statusView{Known: true, WorldUp: true, AuthUp: true, Players: 0, Bots: 150, Uptime: "3h 2m"}, true, "Medium", "Up for 3h 2m. 150 AI players that never sleep."},
+		{statusView{Known: true, WorldUp: true, AuthUp: true}, true, "Low", "The world awaits its first heroes."},
 		{statusView{Known: true, WorldUp: false, AuthUp: true}, true, "Offline", "The realm is offline right now. You can still make an account, ready for when it's back."},
 		{statusView{Known: true, WorldUp: false}, false, "Offline", "The realm is offline right now."},
 		{statusView{Known: true, WorldUp: true, AuthUp: false}, true, "Offline", "The login server is down, so nobody can log in right now."},

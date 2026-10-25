@@ -48,7 +48,9 @@
       return pool.find((v) => Math.max(want[0] / v.w, want[1] / v.h) <= 1.15) || pool[pool.length - 1];
     };
 
-    const play = (scene, first) => {
+    // make builds a scene's video and starts it loading, without playing:
+    // it stays invisible until start fades it in.
+    const make = (scene) => {
       const v = doc.createElement('video');
       v.muted = true;
       v.defaultMuted = true;
@@ -56,7 +58,6 @@
       v.playsInline = true;
       v.setAttribute('playsinline', '');
       v.loop = true;
-      v.autoplay = true;
       v.preload = 'auto';
       v.tabIndex = -1;
       v.disablePictureInPicture = true;
@@ -68,21 +69,38 @@
         source.type = s.type;
         v.append(source);
       }
+      backdrop.append(v);
+      return v;
+    };
+
+    // start plays a video from make and fades it in over the last scene,
+    // once it's moving and has enough to play through without stalling.
+    // The last scene keeps playing until then, so there's never a gap.
+    const start = (v, first) => {
       const old = backdrop.querySelector('video.on');
-      // The first scene shows its picture at once; later ones fade in over
-      // the last once they're actually moving.
-      if (first && scene.poster) v.classList.add('on');
-      v.addEventListener('playing', () => {
+      // The first scene shows its picture at once.
+      if (first && v.poster) v.classList.add('on');
+      let faded = false;
+      const fade = () => {
+        if (faded) return;
+        faded = true;
         v.classList.add('on');
         if (old && old !== v) {
           old.classList.remove('on');
           setTimeout(() => old.remove(), 2500);
         }
+      };
+      v.addEventListener('playing', () => {
+        if (v.readyState >= 4) fade();
+        else {
+          v.addEventListener('canplaythrough', fade, { once: true });
+          setTimeout(fade, 8000); // a slow line: go anyway
+        }
       }, { once: true });
-      backdrop.append(v);
       v.play().catch(() => { /* blocked (battery saver, say): the picture stays */ });
       return v;
     };
+    const play = (scene, first) => start(make(scene), first);
 
     if (scenes.length) {
       let i = scenes.findIndex((s) => s.name === cfg.scene);
@@ -102,12 +120,30 @@
         }).observe(backdrop);
       }
       doc.addEventListener('visibilitychange', sync);
+      // Moving on: the next scene starts loading ahead of time, by
+      // video_preload percent of video_change (unless the browser is saving
+      // data, or it's set to 0), so it's ready to fade in.
+      let next = null;
+      const live = () => shown && doc.visibilityState === 'visible';
       if (cfg.change > 0 && scenes.length > 1) {
-        setInterval(() => {
-          if (!shown || doc.visibilityState !== 'visible') return;
-          i = (i + 1) % scenes.length;
-          current = play(scenes[i], false);
-        }, cfg.change * 1000);
+        const every = cfg.change * 1000;
+        const lead = every * Math.min(Math.max(cfg.preload || 0, 0), 100) / 100;
+        const cycle = () => {
+          if (lead > 0) {
+            setTimeout(() => {
+              if (!next && !thrifty && live()) next = make(scenes[(i + 1) % scenes.length]);
+            }, every - lead);
+          }
+          setTimeout(() => {
+            if (live()) {
+              i = (i + 1) % scenes.length;
+              current = next ? start(next, false) : play(scenes[i], false);
+              next = null;
+            }
+            cycle();
+          }, every);
+        };
+        cycle();
       }
       // A phone turned on its side wants the other shape of video.
       let upright = innerHeight > innerWidth;
@@ -115,6 +151,7 @@
         const now = innerHeight > innerWidth;
         if (now === upright) return;
         upright = now;
+        if (next) { next.remove(); next = null; } // loaded for the other shape
         current = play(scenes[i], false);
       });
     }
