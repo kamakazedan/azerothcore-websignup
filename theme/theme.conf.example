@@ -28,6 +28,11 @@ video_scene = random
 # one it started with.
 video_change = 0
 
+# How early the next scene starts loading, as a percentage of
+# video_change: 50 loads it halfway through the current one, so it's ready
+# to fade in on time. 0 loads it only when it's due.
+video_preload = 50%
+
 # Scenes to show mirrored, left to right, separated by commas, like
 # lich-king, night-elf-archer. all mirrors every one; none, none of them.
 video_flip = none

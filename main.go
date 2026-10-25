@@ -200,6 +200,7 @@ func run(log *slog.Logger) error {
 		ThemeDir:           env("THEME_DIR", "/theme"),
 		Proxies:            proxies,
 		AccountsPerIPDay:   envInt("ACCOUNTS_PER_IP_PER_DAY", 3),
+		AIPlayers:          envInt("AI_PLAYERS", 0),
 		HSTS:               envBool("HSTS", false),
 		Demo:               demo,
 	}
