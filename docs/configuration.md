@@ -21,6 +21,7 @@ The look of the page has its own settings file, `theme.conf`: see
 | `CLIENT_HAS_REALMLIST` | `1` | That client already points at the realm, so its players can skip the realmlist step |
 | `GAME_VERSION` | `3.3.5a (12340)` | |
 | `PUBLIC_URL` | | The site's address, like `https://wow.example.com` |
+| `DISCORD_URL` | | An invite to your Discord, like `https://discord.gg/abc123`. It shows in the menu, under How to connect and after sign-up. Empty hides it |
 | `AI_PLAYERS` | | How many AI players to mention (like `1500`) when none are counted online, so the realm never sounds empty |
 
 ## What it offers

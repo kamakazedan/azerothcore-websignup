@@ -13,7 +13,8 @@ restart.
 
 Start from the built-in versions in `internal/site/content/`. They're plain
 HTML: headings, paragraphs and lists. A few marks are filled in for you:
-`{{REALM}}`, `{{REALMLIST}}`, `{{DOWNLOAD_URL}}` and `{{GAME_VERSION}}`.
+`{{REALM}}`, `{{REALMLIST}}`, `{{DOWNLOAD_URL}}`, `{{DISCORD_URL}}` and
+`{{GAME_VERSION}}`.
 
 An empty file hides its section altogether. Delete the file to go back to
 the built-in text.

@@ -61,6 +61,9 @@
       {{- if .Content.rules}}
       <a href="#rules">Rules</a>
       {{- end}}
+      {{- with .Cfg.DiscordURL}}
+      <a class="nav-discord" href="{{.}}" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{$.Asset}}#chat"></use></svg>Discord</a>
+      {{- end}}
     </nav>
   </div>
 </header>
@@ -119,6 +122,15 @@
         <p>Start <code>Wow.exe</code> from the game folder, not the launcher, and log in with the username and password you chose here.</p>
       </li>
     </ol>
+    {{- with .Cfg.DiscordURL}}
+    <div class="community">
+      <div>
+        <h3>Join the community</h3>
+        <p>Find a group, ask for help and hear the news first on our Discord.</p>
+      </div>
+      <a class="btn btn-ghost" href="{{.}}" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{$.Asset}}#chat"></use></svg>Join our Discord</a>
+    </div>
+    {{- end}}
     {{- with .Content.connect}}
     <div class="prose tips">{{.}}</div>
     {{- end}}
@@ -315,6 +327,9 @@
       {{template "realmlist" (dict "ID" "realmlist-done" "Line" .Cfg.Realmlist "Asset" .Asset)}}
       {{- end}}
       <p>Then start <code>Wow.exe</code> and log in as <strong data-done-user></strong>.</p>
+      {{- end}}
+      {{- with .Cfg.DiscordURL}}
+      <p class="done-community">New to the realm? Find a group and get help on our <a href="{{.}}" target="_blank" rel="noopener">Discord</a>.</p>
       {{- end}}
       <p class="done-links"><a href="#connect">All the setup steps</a><button type="button" class="linklike" data-again>Make another account</button></p>
     </div>

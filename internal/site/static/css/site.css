@@ -217,6 +217,12 @@ code {
   font-weight: 700;
 }
 .site-nav a:hover { color: #fff; }
+.nav-discord {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-discord .icon { width: 20px; height: 20px; }
 
 .site-nav.open {
   position: absolute;
@@ -856,6 +862,7 @@ noscript .alert { margin: 0 0 20px; }
   color: var(--ok);
 }
 .done-title:focus { outline: none; }
+.done-community { color: var(--rime-dim); }
 .done-links {
   display: flex;
   flex-wrap: wrap;
@@ -964,6 +971,23 @@ noscript .alert { margin: 0 0 20px; }
   .steps > li::before { top: 0; font-size: 2.5rem; }
   .steps h3 { min-height: 0; padding: 0; }
 }
+
+/* An invite to the Discord, under the steps. */
+.community {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+  margin-top: 48px;
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold-soft);
+  border-radius: 4px;
+  background: rgba(143, 211, 255, .04);
+}
+.community h3 { margin-bottom: 6px; }
+.community p { color: var(--rime-dim); }
 
 .tips {
   margin-top: 56px;

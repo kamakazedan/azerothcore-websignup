@@ -39,6 +39,7 @@ type Config struct {
 	ClientHasRealmlist bool   // that client already points at this realm
 	GameVersion        string
 	PublicURL          string // https://wow.example.com, for links shared elsewhere
+	DiscordURL         string // an invite to the community's Discord, if there is one
 	Registration       bool
 	ChangePassword     bool
 	ShowOnline         bool
@@ -120,6 +121,7 @@ func New(cfg Config, store game.Store, issuer *pow.Issuer, log *slog.Logger) (*S
 			"REALM":        cfg.SiteName,
 			"REALMLIST":    cfg.Realmlist,
 			"DOWNLOAD_URL": cfg.DownloadURL,
+			"DISCORD_URL":  cfg.DiscordURL,
 			"GAME_VERSION": cfg.GameVersion,
 		}),
 		theme:  newThemeDir(cfg.ThemeDir, log),

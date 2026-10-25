@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
@@ -41,6 +42,17 @@ func envInt(key string, def int) int {
 		slog.Warn("not a number, using the default", "setting", key, "value", v, "default", def)
 	}
 	return def
+}
+
+// webURL reads a setting that must be a web address, so a typo can't put
+// something else in a link on the page.
+func webURL(key string) string {
+	v := env(key, "")
+	if u, err := url.Parse(v); v != "" && (err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "") {
+		slog.Warn("not a web address, leaving it out", "setting", key, "value", v)
+		return ""
+	}
+	return v
 }
 
 func envBool(key string, def bool) bool {
@@ -189,6 +201,7 @@ func run(log *slog.Logger) error {
 		ClientHasRealmlist: envBool("CLIENT_HAS_REALMLIST", true),
 		GameVersion:        env("GAME_VERSION", "3.3.5a (12340)"),
 		PublicURL:          strings.TrimRight(env("PUBLIC_URL", ""), "/"),
+		DiscordURL:         webURL("DISCORD_URL"),
 		Registration:       envBool("REGISTRATION", true),
 		ChangePassword:     envBool("CHANGE_PASSWORD", true),
 		ShowOnline:         envBool("SHOW_ONLINE_PLAYERS", true),

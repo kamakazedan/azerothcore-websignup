@@ -17,8 +17,8 @@ import (
 // seconds; no restart needed.
 //
 // They are trusted HTML, written by whoever runs the site, with a few
-// placeholders filled in: {{REALM}}, {{REALMLIST}}, {{DOWNLOAD_URL}} and
-// {{GAME_VERSION}}.
+// placeholders filled in: {{REALM}}, {{REALMLIST}}, {{DOWNLOAD_URL}},
+// {{DISCORD_URL}} and {{GAME_VERSION}}.
 var contentFiles = []string{"connect.html", "about.html", "bots.html", "rules.html"}
 
 type content struct {

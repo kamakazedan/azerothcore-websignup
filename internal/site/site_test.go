@@ -151,6 +151,17 @@ func TestPage(t *testing.T) {
 	}
 }
 
+func TestPageDiscord(t *testing.T) {
+	if body := get(t, newTestServer(t, nil), "/").Body.String(); strings.Contains(body, "Discord") {
+		t.Error("Discord shows with no DISCORD_URL")
+	}
+	h := newTestServer(t, func(c *Config) { c.DiscordURL = "https://discord.gg/frost" })
+	body := get(t, h, "/").Body.String()
+	if n := strings.Count(body, `href="https://discord.gg/frost"`); n != 3 {
+		t.Errorf("the invite is linked %d times, want 3 (menu, How to connect, after sign-up)", n)
+	}
+}
+
 func TestPageWithFormsClosed(t *testing.T) {
 	h := newTestServer(t, func(c *Config) { c.Registration, c.ChangePassword = false, false })
 	body := get(t, h, "/").Body.String()
