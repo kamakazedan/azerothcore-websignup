@@ -502,7 +502,12 @@
       for (const id of regions) {
         const now = doc.getElementById(id);
         const next = fresh.getElementById(id);
-        if (now && next) now.replaceWith(doc.importNode(next, true));
+        if (!now || !next) continue;
+        // Fresh copies skip the page's opening fade-in: the status box
+        // shouldn't vanish and come back every minute.
+        const node = doc.importNode(next, true);
+        node.classList.add('settled');
+        now.replaceWith(node);
       }
     } catch (_) {
       // Try again next time.
