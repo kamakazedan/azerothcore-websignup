@@ -182,6 +182,16 @@
     });
   }
 
+  // ----------------------------------------------------------- emblem
+  // The emblem stays in the corner; once the page has moved, it gets a
+  // backing so it stands out from what's under it.
+  const brand = doc.querySelector('.brand');
+  if (brand) {
+    const lift = () => brand.classList.toggle('lifted', window.scrollY > 24);
+    window.addEventListener('scroll', lift, { passive: true });
+    lift();
+  }
+
   // ------------------------------------------------------------ menu
   const toggle = doc.querySelector('.menu-toggle');
   const nav = doc.getElementById('site-nav');
