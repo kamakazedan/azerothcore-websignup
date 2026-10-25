@@ -67,8 +67,10 @@ as `ghcr.io/kamakazedan/azerothcore-websignup:latest`
 ([.github/workflows/image.yml](.github/workflows/image.yml)). The stack
 pulls it from there, so there's nothing to build on your server.
 
-1. On the server, make a folder for your own files:
-   `mkdir -p ~/websignup/theme ~/websignup/content`
+1. On the server, clone this repository if you haven't already:
+   `git clone https://github.com/kamakazedan/azerothcore-websignup.git ~/azerothcore-websignup`.
+   Your own files go in its `theme` and `content` folders. Git ignores
+   anything you add there, so `git pull` never clashes with them.
 2. If you haven't yet, create the database user (step 2 of "Doing it by
    hand", or run `setup.sh` once).
 3. Go to **Stacks → Add stack**, call it `websignup`, choose **Web editor**
@@ -76,7 +78,8 @@ pulls it from there, so there's nothing to build on your server.
 4. Under **Environment variables**, add at least:
    - `DB_PASSWORD`: the `websignup` database user's password
    - `SECRET_KEY`: 64 hex characters (`openssl rand -hex 32`)
-   - `WEBSIGNUP_FILES`: the folder from step 1, such as `/home/you/websignup`
+   - `WEBSIGNUP_FILES`: the folder from step 1, such as
+     `/home/you/azerothcore-websignup`
 
    then whatever the page should say (`SITE_NAME`, `REALMLIST`,
    `CLIENT_DOWNLOAD_URL`, `PUBLIC_URL`, ...). The quick way is **Advanced
@@ -105,8 +108,8 @@ show up within seconds, with no update at all.
    compose down`. The new one takes the same name and port, so the old one
    has to go first, and your reverse proxy needs no change.
 3. Follow the steps above. The database user already exists, so skip
-   step 2. Copy anything of your own from the old `theme` and `content`
-   folders into the new ones.
+   step 2, and point `WEBSIGNUP_FILES` at `~/azerothcore-websignup` so the
+   stack keeps using the `theme` and `content` folders you already have.
 
 ## Your own look
 
