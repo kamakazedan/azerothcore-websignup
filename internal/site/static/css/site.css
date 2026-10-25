@@ -190,11 +190,30 @@ code {
 .masthead-in {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   height: 72px;
 }
-.brand { display: block; border-radius: 50%; }
-.brand img { width: auto; height: 40px; max-width: 200px; object-fit: contain; }
+/* The emblem stays in the corner as the page scrolls, as the way back to
+   the top. Its place lines up with the page's own left edge. Once the
+   page moves, it takes a dark backing so it reads over whatever passes
+   beneath. */
+.brand {
+  position: fixed;
+  top: 12px;
+  left: calc(max(var(--gutter), (100% - var(--wrap)) / 2) - 4px);
+  z-index: 30;
+  display: block;
+  padding: 4px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px transparent;
+  transition: background-color .4s ease, box-shadow .4s ease;
+}
+.brand img { display: block; width: auto; height: 40px; max-width: 200px; object-fit: contain; }
+.brand.lifted {
+  background: rgba(4, 9, 18, .78);
+  box-shadow: 0 0 0 1px var(--line), 0 0 18px rgba(143, 211, 255, .22);
+}
+.brand.lifted:hover { box-shadow: 0 0 0 1px var(--frost), 0 0 24px rgba(143, 211, 255, .4); }
 
 .menu-toggle {
   display: grid;
