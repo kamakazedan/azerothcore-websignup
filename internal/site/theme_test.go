@@ -116,9 +116,29 @@ func TestNoTheme(t *testing.T) {
 	if !strings.Contains(body, `href="/theme.css?v=`) || !strings.Contains(body, "/static/img/emblem.svg") {
 		t.Error("the page should link /theme.css and show the built-in emblem")
 	}
+	if !strings.Contains(body, `<link rel="preload" as="image" href="/static/img/background.jpg?v=`) {
+		t.Error("the page should preload the built-in background")
+	}
 	css := get(t, h, "/theme.css").Body.String()
-	if strings.Contains(css, "url(") || strings.Contains(css, "nth-child") {
-		t.Errorf("an empty theme makes a stylesheet with pictures or particles:\n%s", css)
+	if strings.Count(css, "url(") != 2 || !strings.Contains(css, `.sky { background: url("/static/img/background.jpg?v=`) ||
+		!strings.Contains(css, `.sky { background: url("/static/img/background-phone.jpg?v=`) || strings.Contains(css, "nth-child") {
+		t.Errorf("an empty theme should use only the built-in background, and no particles:\n%s", css)
+	}
+	for _, n := range []string{"/static/img/background.jpg", "/static/img/background-phone.jpg"} {
+		if rec := get(t, h, n); rec.Code != http.StatusOK || rec.Header().Get("Content-Type") != "image/jpeg" {
+			t.Errorf("%s: %d %s", n, rec.Code, rec.Header().Get("Content-Type"))
+		}
+	}
+}
+
+// A background picture of your own replaces the built-in one, for phones too.
+func TestOwnBackground(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "background.webp", "x")
+	_, h := themeServer(t, dir)
+	css := get(t, h, "/theme.css").Body.String()
+	if !strings.Contains(css, `url("/theme/background.webp?v=`) || strings.Contains(css, "/static/img/background") {
+		t.Errorf("your own background should replace the built-in one:\n%s", css)
 	}
 }
 
@@ -204,7 +224,7 @@ func TestThemeHints(t *testing.T) {
 		write(t, dir, n, "x")
 	}
 	var logs bytes.Buffer
-	newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)))
+	newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)), "", "")
 	out := logs.String()
 	for _, want := range []string{
 		"background.png isn't used: background.jpg is used instead",
@@ -290,7 +310,7 @@ func TestScenes(t *testing.T) {
 	}
 	write(t, dir, "theme.conf", "video_scene = lich-king\nvideo_change = 30\nvideo_flip = night-elf-archer, arthas\n")
 	var logs bytes.Buffer
-	td := newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)))
+	td := newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)), "", "")
 	th, files, _ := td.get()
 
 	if len(th.Scenes) != 2 {

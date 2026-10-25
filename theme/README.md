@@ -3,7 +3,9 @@
 The top of the page (the part behind the realm's name and the sign-up
 form) uses files from your theme folder. Drop files in and the site picks
 them up within a few seconds; there's no need to restart anything. Every
-file is optional: with none, the top of the page is plain and dark.
+file is optional: with no picture of your own, the top of the page shows
+the built-in one, a blizzard over a frozen plain (made by
+[`art/background.py`](../art/background.py), free to use under CC0).
 
 If you run the site with `docker compose`, the theme folder is this one.
 In Portainer it's the `theme` folder inside `WEBSIGNUP_FILES`.

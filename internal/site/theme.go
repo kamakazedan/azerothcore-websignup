@@ -1,7 +1,9 @@
 package site
 
 // The look of the top of the page comes from a folder of your own files
-// (THEME_DIR, /theme in the container). Every file is optional:
+// (THEME_DIR, /theme in the container). Every file is optional; with no
+// background picture, the built-in one (static/img, made by art/background.py)
+// is used:
 //
 //	background.jpg      the picture behind the name and form (or .png, .webp, .avif)
 //	background-phone.jpg  a different crop of it for phones
@@ -148,6 +150,9 @@ func defaultSettings() ThemeSettings {
 type themeDir struct {
 	dir string
 	log *slog.Logger
+	// The built-in pictures, used when the folder has no background picture
+	// of its own.
+	fallback, fallbackPhone string
 
 	mu      sync.Mutex
 	checked time.Time
@@ -158,8 +163,8 @@ type themeDir struct {
 	css     []byte
 }
 
-func newThemeDir(dir string, log *slog.Logger) *themeDir {
-	t := &themeDir{dir: dir, log: log}
+func newThemeDir(dir string, log *slog.Logger, fallback, fallbackPhone string) *themeDir {
+	t := &themeDir{dir: dir, log: log, fallback: fallback, fallbackPhone: fallbackPhone}
 	t.refresh(true)
 	return t
 }
@@ -235,6 +240,13 @@ func (t *themeDir) refreshLocked(first bool) {
 	}
 	if n := pick("background-phone", pictureExts); n != "" {
 		th.BackgroundPhone = url(n)
+	}
+	own := th.Background != ""
+	if !own {
+		th.Background = t.fallback
+		if th.BackgroundPhone == "" {
+			th.BackgroundPhone = t.fallbackPhone
+		}
 	}
 	if n := pick("page", pictureExts); n != "" {
 		th.Page = url(n)
@@ -352,7 +364,7 @@ func (t *themeDir) refreshLocked(first bool) {
 		}
 	}
 	if t.dir != "" && (len(entries) > 0 || !first) {
-		t.log.Info("theme loaded", "dir", t.dir, "background", th.Background != "", "videos", sceneList(th.Scenes),
+		t.log.Info("theme loaded", "dir", t.dir, "background", own, "videos", sceneList(th.Scenes),
 			"particles", th.Settings.Particles, "particle images", len(th.Sprites))
 	}
 	for _, p := range problems {

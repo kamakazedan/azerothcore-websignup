@@ -82,6 +82,7 @@ binary, so restart after changing a template or stylesheet.
 - `main.go`: settings
 - `internal/site`: the page, templates, styles, script, forms and theme folder
 - `internal/game`: the database, validation, demo data
+- `art`: the script that paints the built-in background
 - `internal/srp6`: AzerothCore's password verifiers
 - `internal/pow`: the proof-of-work challenges
 - `internal/ratelimit`: the limits
@@ -89,7 +90,8 @@ binary, so restart after changing a template or stylesheet.
 
 ## Credits
 
-The crystal emblem was drawn for this project. Nothing here comes from
+The crystal emblem was drawn for this project, and the built-in background
+is painted by a script in `art` (CC0). Nothing here comes from
 Blizzard. World of Warcraft and Wrath of the Lich King are trademarks of
 Blizzard Entertainment, Inc., and this project isn't made or endorsed by
 them.

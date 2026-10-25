@@ -275,8 +275,8 @@ code {
 }
 
 /* ----------------------------------------------------------------- hero */
-/* Layers behind the words, back to front: the sky (your picture, or a
-   plain dark one), your video if there is one, a shade that keeps the
+/* Layers behind the words, back to front: the sky (your picture, or the
+   built-in one), your video if there is one, a shade that keeps the
    words readable and fades into the page, then the particles. */
 /* A landing page: the scene fills the whole screen, and the rest of the
    page starts below it. */
