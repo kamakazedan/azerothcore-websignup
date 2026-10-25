@@ -13,6 +13,7 @@ services:
     env_file: .env
     environment:
       CONTENT_DIR: /content
+      THEME_DIR: /theme
       # Keeps Go's memory use under the container's limit.
       GOMEMLIMIT: 100MiB
     ports:
@@ -20,6 +21,8 @@ services:
     volumes:
       # Your own versions of the page's text, if any (see content/README.md).
       - ./content:/content:ro
+      # Your own backgrounds and particles (see theme/README.md).
+      - ./theme:/theme:ro
     networks:
       - ac-network
     # It needs nothing more than this.

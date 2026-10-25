@@ -14,11 +14,24 @@
 <meta property="og:url" content="{{.}}/">
 <link rel="canonical" href="{{.}}/">
 {{- end}}
+{{- if .Theme.Favicon}}
+<link rel="icon" href="{{.Theme.Favicon}}">
+{{- else}}
 <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg?v={{.Asset}}">
-<link rel="preload" as="image" type="image/webp" href="/static/img/sky.webp">
+{{- end}}
+{{- with .Theme.Background}}
+<link rel="preload" as="image" href="{{.}}"{{if $.Theme.BackgroundPhone}} media="(min-width: 641px)"{{end}}>
+{{- end}}
+{{- with .Theme.BackgroundPhone}}
+<link rel="preload" as="image" href="{{.}}" media="(max-width: 640px)">
+{{- end}}
 <link rel="preload" as="font" type="font/woff" href="/static/fonts/cinzel.woff" crossorigin>
 <link rel="preload" as="font" type="font/woff" href="/static/fonts/alegreya-sans-regular.woff" crossorigin>
 <link rel="stylesheet" href="/static/css/site.css?v={{.Asset}}">
+<link rel="stylesheet" href="/theme.css?v={{.Theme.Stamp}}">
+{{- with .Theme.CSS}}
+<link rel="stylesheet" href="{{.}}">
+{{- end}}
 <script src="/static/js/site.js?v={{.Asset}}" defer></script>
 </head>
 <body>
@@ -26,7 +39,9 @@
 
 <header class="masthead">
   <div class="wrap masthead-in">
-    <a class="brand" href="#top"><img src="/static/img/emblem.svg?v={{.Asset}}" alt="" width="40" height="40"><span class="sr">{{.Cfg.SiteName}}, back to the top</span></a>
+    <a class="brand" href="#top">
+      {{- if .Theme.Logo}}<img src="{{.Theme.Logo}}" alt="" height="40">{{else}}<img src="/static/img/emblem.svg?v={{.Asset}}" alt="" width="40" height="40">{{end -}}
+      <span class="sr">{{.Cfg.SiteName}}, back to the top</span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
       <svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#menu"></use></svg>
       <span class="sr">Menu</span>
@@ -52,9 +67,19 @@
 
 <main id="top">
 <section class="hero" aria-labelledby="realm-title">
-  <div class="sky" aria-hidden="true"></div>
-  <div class="shards" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="land" aria-hidden="true"></div>
+  {{- $motion := ""}}{{if ne .Theme.Settings.Motion "none"}}{{$motion = printf " motion-%s" .Theme.Settings.Motion}}{{end}}
+  <div class="sky{{$motion}}" aria-hidden="true"></div>
+  {{- if .Theme.Videos}}
+  <video class="sky-video{{$motion}}" autoplay muted loop playsinline aria-hidden="true" tabindex="-1"{{with .Theme.Background}} poster="{{.}}"{{end}}>
+    {{- range .Theme.Videos}}
+    <source src="{{.URL}}" type="{{.Type}}">
+    {{- end}}
+  </video>
+  {{- end}}
+  <div class="shade" aria-hidden="true"></div>
+  {{- if .Theme.Slots}}
+  <div class="particles particles-{{.Theme.Settings.Particles}}{{if .Theme.Sprites}} has-sprite{{end}}" aria-hidden="true">{{range .Theme.Slots}}<i></i>{{end}}</div>
+  {{- end}}
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <h1 id="realm-title" class="realm-name">{{.Cfg.SiteName}}</h1>

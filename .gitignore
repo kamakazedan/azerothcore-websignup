@@ -4,3 +4,10 @@
 # Local builds
 /websignup
 /websignup.exe
+
+# Your own page text and theme files stay on your server
+/content/*
+!/content/README.md
+/theme/*
+!/theme/README.md
+!/theme/theme.conf.example

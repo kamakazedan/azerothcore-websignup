@@ -7,4 +7,5 @@ sql/
 setup.sh
 docker-compose.yml
 docs/
-art/
+theme/
+portainer-stack.yml
