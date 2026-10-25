@@ -119,6 +119,31 @@
     }
   }
 
+  // ----------------------------------------------------------- tagline
+  // One line, however long the tagline: shrink it until it fits its
+  // column, and only let it wrap if it would be too small to read.
+  const tagline = doc.querySelector('.tagline');
+  if (tagline) {
+    const fit = () => {
+      tagline.classList.remove('wraps');
+      tagline.style.removeProperty('--fit');
+      const full = parseFloat(getComputedStyle(tagline).fontSize);
+      const room = tagline.clientWidth;
+      const need = tagline.scrollWidth;
+      if (need <= room) return;
+      const size = Math.floor(full * room / need * 10) / 10;
+      if (size < 12) tagline.classList.add('wraps');
+      else tagline.style.setProperty('--fit', `${size}px`);
+    };
+    fit();
+    if (doc.fonts) doc.fonts.ready.then(fit);
+    let pending = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(fit);
+    });
+  }
+
   // ------------------------------------------------------------ menu
   const toggle = doc.querySelector('.menu-toggle');
   const nav = doc.getElementById('site-nav');
