@@ -23,8 +23,11 @@ import (
 	"github.com/kamakazedan/azerothcore-websignup/internal/site"
 )
 
+// env reads a setting. Set but empty counts as not set, so a Portainer
+// stack can pass every setting through as ${NAME} and still get the
+// defaults for the ones left blank.
 func env(key, def string) string {
-	if v, ok := os.LookupEnv(key); ok {
+	if v, ok := os.LookupEnv(key); ok && strings.TrimSpace(v) != "" {
 		return strings.TrimSpace(v)
 	}
 	return def
@@ -194,6 +197,7 @@ func run(log *slog.Logger) error {
 		WorldAddr:          env("WORLD_ADDR", "ac-worldserver:8085"),
 		AuthAddr:           env("AUTH_ADDR", "ac-authserver:3724"),
 		ContentDir:         env("CONTENT_DIR", "/content"),
+		ThemeDir:           env("THEME_DIR", "/theme"),
 		Proxies:            proxies,
 		AccountsPerIPDay:   envInt("ACCOUNTS_PER_IP_PER_DAY", 3),
 		HSTS:               envBool("HSTS", false),

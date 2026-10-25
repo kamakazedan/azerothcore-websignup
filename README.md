@@ -18,7 +18,9 @@ Players can:
 - read **about the server**, a **guide to playing with bots**, and your
   **rules**, in text you can change without touching the code
 
-It works on phones as well as desktops.
+It works on phones as well as desktops. The look of the top of the page is
+yours: a background picture or video and particles floating across it, from
+files you drop into a folder (see [theme/README.md](theme/README.md)).
 
 <img src="docs/phone.jpg" alt="The site on a phone" width="300">
 
@@ -57,6 +59,56 @@ The site listens on port 8090 of the host. Point your reverse proxy at it
 3. Check `AC_NETWORK` in `.env` matches AzerothCore's Docker network
    (`docker network ls | grep ac-network`).
 4. `docker compose up -d --build`
+
+## Running it in Portainer
+
+Portainer doesn't reliably build images while it deploys a stack, so you
+build the image once, then a stack runs it.
+
+1. On the server, make a folder for your own files:
+   `mkdir -p ~/websignup/theme ~/websignup/content`
+2. If you haven't yet, create the database user (step 2 of "Doing it by
+   hand", or run `setup.sh` once).
+3. In Portainer, go to **Images → Build a new image**. Name it
+   `azerothcore-websignup:latest`, choose the **URL** build method, enter
+   `https://github.com/kamakazedan/azerothcore-websignup.git`, and leave
+   the Dockerfile path as `Dockerfile`. Build it.
+4. Go to **Stacks → Add stack**, call it `websignup`, choose **Web editor**
+   and paste in [`portainer-stack.yml`](portainer-stack.yml).
+5. Under **Environment variables**, add at least:
+   - `DB_PASSWORD`: the `websignup` database user's password
+   - `SECRET_KEY`: 64 hex characters (`openssl rand -hex 32`)
+   - `WEBSIGNUP_FILES`: the folder from step 1, such as `/home/you/websignup`
+
+   then whatever the page should say (`SITE_NAME`, `REALMLIST`,
+   `CLIENT_DOWNLOAD_URL`, `PUBLIC_URL`, ...). The quick way is **Advanced
+   mode**: paste in lines written like `.env.example`, comments and all.
+6. Click **Deploy the stack**.
+
+To update, build the image again (step 3), then open the stack and click
+**Update the stack**. Leave **Re-pull image** off: the image is only on
+your server, so there's nowhere to pull it from.
+
+### Moving a `docker compose` install into Portainer
+
+1. Print the settings it uses, to paste in at step 5 above:
+   `cat ~/azerothcore-websignup/.env`
+2. Remove the old container: in Portainer, **Containers**, tick
+   `ac-websignup`, **Remove**. Or `cd ~/azerothcore-websignup && docker
+   compose down`. The new one takes the same name and port, so the old one
+   has to go first, and your reverse proxy needs no change.
+3. Follow the steps above. The database user already exists, so skip
+   step 2. Copy anything of your own from the old `theme` and `content`
+   folders into the new ones.
+
+## Your own look
+
+The background picture or video, the floating particles and how they move,
+the logo and the tab icon all come from files in the theme folder (`theme`
+here, or `theme` inside `WEBSIGNUP_FILES` with Portainer). The site picks
+up changes within a few seconds. [theme/README.md](theme/README.md) lists
+the files and settings; `theme/theme.conf.example` is a settings file to
+start from.
 
 ## Behind Nginx Proxy Manager
 
@@ -207,7 +259,8 @@ uses is built into the binary, so restart after changing a template or a
 stylesheet.
 
 - `main.go`: settings
-- `internal/site`: the page, its templates, styles, script and the forms
+- `internal/site`: the page, its templates, styles, script, the forms,
+  and the theme folder (`theme.go`)
 - `internal/game`: the database, validation, demo data
 - `internal/srp6`: AzerothCore's password verifiers
 - `internal/pow`: the proof-of-work challenges
@@ -215,11 +268,10 @@ stylesheet.
 
 ## Credits
 
-The art (the torn sky, the crags and the crystal emblem) was drawn for
-this project; the scripts that paint the scene are in `art/`. Nothing here
-comes from Blizzard. World of Warcraft and Wrath of the Lich
-King are trademarks of Blizzard Entertainment, Inc., and this project isn't
-made or endorsed by them.
+The crystal emblem was drawn for this project. Nothing here comes from
+Blizzard. World of Warcraft and Wrath of the Lich King are trademarks of
+Blizzard Entertainment, Inc., and this project isn't made or endorsed by
+them.
 
 Fonts are under the SIL Open Font License: Cinzel by Natanael Gama, and
 Alegreya Sans by Juan Pablo del Peral and Huerta Tipográfica.

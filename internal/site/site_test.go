@@ -267,7 +267,7 @@ func TestStatic(t *testing.T) {
 	if rec := get(t, h, "/static/fonts"); rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "fonts/" {
 		t.Errorf("GET /static/fonts = %d %q", rec.Code, rec.Header().Get("Location"))
 	}
-	if rec := get(t, h, "/favicon.ico"); rec.Code != http.StatusMovedPermanently {
+	if rec := get(t, h, "/favicon.ico"); rec.Code != http.StatusFound {
 		t.Errorf("favicon = %d", rec.Code)
 	}
 }

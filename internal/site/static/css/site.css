@@ -1,7 +1,8 @@
 /* azerothcore-websignup: one stylesheet, mobile first.
-   Everything is original: no Blizzard art, fonts or logos. The look is
-   the frozen north at its grimmest: black rock, cold light from a tear in
-   the sky, and the game's own blue and gold for the things you press. */
+   Dark and cold, with the game's own blue and gold for the things you
+   press. The pictures and moving particles at the top come from your own
+   theme folder (see theme/README.md); /theme.css, made from it, loads
+   after this file. */
 
 /* ---------------------------------------------------------------- fonts */
 @font-face {
@@ -39,7 +40,6 @@
 
   --night: #05080f;        /* the page, and the ice the scene ends in */
   --night-2: #070c16;      /* alternate bands */
-  --sky-foot: #08142a;     /* where the sky picture fades out */
   --panel: rgba(4, 9, 18, .86);
   --well: #03060c;         /* inputs, code */
   --rime: #dbe7f3;         /* text */
@@ -194,7 +194,7 @@ code {
   height: 72px;
 }
 .brand { display: block; border-radius: 50%; }
-.brand img { width: 40px; height: 40px; }
+.brand img { width: auto; height: 40px; max-width: 200px; object-fit: contain; }
 
 .menu-toggle {
   display: grid;
@@ -250,96 +250,106 @@ code {
 }
 
 /* ----------------------------------------------------------------- hero */
-/* Three layers behind the words: the sky, rock fragments rising towards
-   the tear in it, and the land in front of them. */
+/* Layers behind the words, back to front: the sky (your picture, or a
+   plain dark one), your video if there is one, a shade that keeps the
+   words readable and fades into the page, then the particles. */
 .hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 92px 0 150px;
-  background: var(--sky-foot);
+  padding: 92px 0 120px;
+  background: var(--night);
 }
 
 .sky,
-.shards,
-.land {
+.sky-video,
+.shade,
+.particles {
   position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 .sky {
-  inset: 0;
-  z-index: -4;
-  background: url("../img/sky.webp") center top / max(100%, 1180px) auto no-repeat;
+  z-index: -5;
+  background:
+    radial-gradient(70% 55% at 55% -8%, rgba(86, 140, 205, .26), transparent 70%),
+    radial-gradient(45% 40% at 10% 0%, rgba(40, 80, 140, .18), transparent 70%),
+    linear-gradient(180deg, #03060c 0%, #071226 58%, var(--night) 100%);
 }
-.land {
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: clamp(250px, 35vw, 600px);
-  z-index: -2;
-  background: url("../img/land.webp") center bottom / cover no-repeat;
+.sky-video {
+  z-index: -4;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--hero-focus, 50% 40%);
+}
+.shade {
+  z-index: -3;
+  background:
+    linear-gradient(180deg, rgba(3, 6, 12, .55) 0, rgba(3, 6, 12, 0) 160px),
+    linear-gradient(180deg, rgba(5, 8, 15, 0) 50%, var(--night) 100%),
+    rgba(3, 6, 12, var(--hero-shade, 0));
 }
 
-/* Each fragment rises from behind the land, drifts in towards the tear,
-   shrinks into the distance and fades as it reaches the light. */
-.shards {
-  left: 0;
-  right: 0;
-  top: 0;
-  height: min(100%, 980px);
-  z-index: -3;
+/* A slow push in, or a slow drift from side to side (background_motion). */
+.motion-zoom { animation: sky-zoom 40s ease-in-out infinite alternate; }
+.motion-drift { inset: 0 -5%; animation: sky-drift 60s ease-in-out infinite alternate; }
+@keyframes sky-zoom { from { transform: scale(1); } to { transform: scale(1.09); } }
+@keyframes sky-drift { from { transform: translateX(-3%); } to { transform: translateX(3%); } }
+
+/* Particles. /theme.css gives each one its place, size and timing as
+   custom properties; these rules move them. */
+.particles {
+  z-index: -2;
   overflow: hidden;
-  --tx: 55;        /* where the tear is, in % of the width */
-  --pull: .55;     /* how far towards it they drift */
-  --rise: -780px;
+  container-type: size;
 }
-.shards i {
+.particles i {
   position: absolute;
-  top: 100%;
-  left: calc(var(--x) * 1%);
+  left: var(--x);
   width: var(--w);
-  aspect-ratio: 1 / .82;
+  aspect-ratio: 1;
   opacity: 0;
-  /* lit from above: a bright facet, a lit face, then shadow */
-  background: linear-gradient(166deg, #e2f3ff 0 7%, #5689c2 8% 36%, #0b1525 37% 100%);
-  clip-path: var(--shape);
-  animation: rise var(--d) linear var(--delay) infinite;
+  background: var(--sprite) center / contain no-repeat;
   will-change: transform, opacity;
 }
-@keyframes rise {
-  0% { transform: translate3d(0, 0, 0) rotate(var(--r0)) scale(1); opacity: 0; }
-  12% { opacity: var(--o); }
-  70% { opacity: var(--o); }
-  100% {
-    transform: translate3d(calc((var(--tx) - var(--x)) * var(--pull) * 1vw), var(--rise), 0) rotate(var(--r1)) scale(.32);
-    opacity: 0;
-  }
+/* Without images of your own, they're drawn as shards lit from above. */
+.particles:not(.has-sprite) i {
+  aspect-ratio: 1 / .82;
+  background: linear-gradient(166deg, #e2f3ff 0 7%, #5689c2 8% 36%, #0b1525 37% 100%);
+  clip-path: var(--shape);
 }
-.shards i:nth-child(1) { --x: 5.0; --w: 14px; --d: 31.0s; --delay: -0.8s; --r0: -13deg; --r1: -62deg; --o: 0.58; --shape: polygon(14% 0, 70% 6%, 100% 44%, 90% 86%, 46% 100%, 0 70%); }
-.shards i:nth-child(2) { --x: 9.1; --w: 22px; --d: 29.6s; --delay: -17.5s; --r0: -28deg; --r1: -81deg; --o: 0.88; --shape: polygon(50% 0, 100% 38%, 80% 100%, 18% 92%, 0 34%); }
-.shards i:nth-child(3) { --x: 18.5; --w: 40px; --d: 24.8s; --delay: -16.1s; --r0: 3deg; --r1: -64deg; --o: 0.82; --shape: polygon(30% 0, 78% 10%, 100% 52%, 72% 100%, 20% 88%, 0 40%); }
-.shards i:nth-child(4) { --x: 22.3; --w: 18px; --d: 32.6s; --delay: -5.2s; --r0: -5deg; --r1: 45deg; --o: 0.84; --shape: polygon(8% 22%, 54% 0, 92% 12%, 100% 58%, 70% 92%, 22% 100%, 0 64%); }
-.shards i:nth-child(5) { --x: 30.1; --w: 28px; --d: 23.3s; --delay: -2.3s; --r0: 21deg; --r1: 109deg; --o: 0.93; --shape: polygon(40% 0, 88% 18%, 100% 66%, 60% 100%, 10% 84%, 0 30%); }
-.shards i:nth-child(6) { --x: 34.2; --w: 12px; --d: 35.6s; --delay: -13.5s; --r0: 3deg; --r1: 78deg; --o: 0.76; --shape: polygon(18% 6%, 62% 0, 100% 34%, 84% 82%, 38% 100%, 0 58%); }
-.shards i:nth-child(7) { --x: 41.8; --w: 34px; --d: 25.2s; --delay: -7.3s; --r0: -25deg; --r1: -117deg; --o: 0.85; --shape: polygon(14% 0, 70% 6%, 100% 44%, 90% 86%, 46% 100%, 0 70%); }
-.shards i:nth-child(8) { --x: 46.3; --w: 16px; --d: 33.7s; --delay: -5.5s; --r0: -9deg; --r1: 73deg; --o: 0.76; --shape: polygon(50% 0, 100% 38%, 80% 100%, 18% 92%, 0 34%); }
-.shards i:nth-child(9) { --x: 61.6; --w: 24px; --d: 30.9s; --delay: -16.5s; --r0: -15deg; --r1: 47deg; --o: 1.00; --shape: polygon(30% 0, 78% 10%, 100% 52%, 72% 100%, 20% 88%, 0 40%); }
-.shards i:nth-child(10) { --x: 66.3; --w: 14px; --d: 29.8s; --delay: -20.4s; --r0: 21deg; --r1: -33deg; --o: 0.56; --shape: polygon(8% 22%, 54% 0, 92% 12%, 100% 58%, 70% 92%, 22% 100%, 0 64%); }
-.shards i:nth-child(11) { --x: 74.5; --w: 44px; --d: 25.7s; --delay: -5.4s; --r0: 27deg; --r1: 79deg; --o: 0.87; --shape: polygon(40% 0, 88% 18%, 100% 66%, 60% 100%, 10% 84%, 0 30%); }
-.shards i:nth-child(12) { --x: 79.3; --w: 20px; --d: 31.0s; --delay: -4.4s; --r0: -22deg; --r1: 63deg; --o: 0.86; --shape: polygon(18% 6%, 62% 0, 100% 34%, 84% 82%, 38% 100%, 0 58%); }
-.shards i:nth-child(13) { --x: 83.4; --w: 30px; --d: 27.1s; --delay: -27.0s; --r0: -22deg; --r1: 24deg; --o: 0.76; --shape: polygon(14% 0, 70% 6%, 100% 44%, 90% 86%, 46% 100%, 0 70%); }
-.shards i:nth-child(14) { --x: 90.9; --w: 16px; --d: 30.8s; --delay: -24.4s; --r0: -5deg; --r1: -68deg; --o: 0.73; --shape: polygon(50% 0, 100% 38%, 80% 100%, 18% 92%, 0 34%); }
-.shards i:nth-child(15) { --x: 95.1; --w: 26px; --d: 25.5s; --delay: -14.1s; --r0: 27deg; --r1: -54deg; --o: 0.88; --shape: polygon(30% 0, 78% 10%, 100% 52%, 72% 100%, 20% 88%, 0 40%); }
-.shards i:nth-child(16) { --x: 27.9; --w: 36px; --d: 31.0s; --delay: -3.5s; --r0: -4deg; --r1: 36deg; --o: 0.93; --shape: polygon(8% 22%, 54% 0, 92% 12%, 100% 58%, 70% 92%, 22% 100%, 0 64%); }
-.shards i:nth-child(17) { --x: 70.6; --w: 12px; --d: 35.6s; --delay: -27.1s; --r0: 0deg; --r1: -92deg; --o: 0.64; --shape: polygon(40% 0, 88% 18%, 100% 66%, 60% 100%, 10% 84%, 0 30%); }
-.shards i:nth-child(18) { --x: 50.4; --w: 18px; --d: 30.5s; --delay: -4.7s; --r0: 16deg; --r1: -60deg; --o: 0.70; --shape: polygon(18% 6%, 62% 0, 100% 34%, 84% 82%, 38% 100%, 0 58%); }
-/* On a phone the words would cross the tear, so it gets the top of the
-   screen to itself and the name starts below it. */
-@media (max-width: 640px) {
-  .hero { padding-top: 288px; }
-  .sky { background-size: 900px auto; }
-  .shards { --tx: 61; --pull: .4; --rise: -700px; height: min(100%, 860px); }
-  .shards i:nth-child(n + 13) { display: none; }
+
+.particles-rise i {
+  top: 100%;
+  animation: p-rise var(--d) linear var(--delay) infinite;
+}
+@keyframes p-rise {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--r0)) scale(1); opacity: 0; }
+  10% { opacity: var(--o); }
+  75% { opacity: var(--o); }
+  100% { transform: translate3d(var(--dx), -108cqh, 0) rotate(var(--r1)) scale(var(--s1)); opacity: 0; }
+}
+
+.particles-fall i {
+  top: calc(var(--w) * -1.5);
+  animation: p-fall var(--d) linear var(--delay) infinite;
+}
+@keyframes p-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--r0)); opacity: 0; }
+  8% { opacity: var(--o); }
+  88% { opacity: var(--o); }
+  100% { transform: translate3d(var(--dx), 112cqh, 0) rotate(var(--r1)); opacity: 0; }
+}
+
+.particles-float i {
+  top: var(--y);
+  opacity: var(--o);
+  animation: p-float var(--d) ease-in-out var(--delay) infinite alternate;
+}
+@keyframes p-float {
+  from { transform: translate3d(0, 0, 0) rotate(var(--r0)); }
+  to { transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--r1)); }
 }
 
 .hero-grid {
@@ -385,7 +395,7 @@ code {
 }
 
 @media (min-width: 1000px) {
-  .hero { padding: 132px 0 230px; }
+  .hero { padding: 132px 0 160px; }
   .hero-grid {
     grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
     align-items: center;
@@ -1007,12 +1017,13 @@ noscript .alert { margin: 0 0 20px; }
 /* ------------------------------------------------------- calmer motion */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .spin { animation: none; }
-  /* The fragments hang where they are, part way up. */
-  .shards i {
-    animation: none;
-    opacity: var(--o);
-    transform: translate3d(calc((var(--tx) - var(--x)) * var(--pull) * .45vw), calc(var(--rise) * .45), 0) rotate(var(--r0)) scale(.7);
-  }
+  .spin,
+  .motion-zoom,
+  .motion-drift { animation: none; }
+  .sky-video { display: none; }
+  /* Particles hang where they are, part way along. */
+  .particles i { animation: none !important; opacity: var(--o); }
+  .particles-rise i { transform: translate3d(calc(var(--dx) * .4), calc(var(--still) * -1cqh), 0) rotate(var(--r0)); }
+  .particles-fall i { transform: translate3d(0, calc(var(--still) * 1cqh), 0) rotate(var(--r0)); }
   input { transition: none; }
 }

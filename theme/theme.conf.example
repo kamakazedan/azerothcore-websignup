@@ -1,0 +1,54 @@
+# Settings for the top of the page. Copy this file to theme.conf in your
+# theme folder and change what you like; the site picks up changes within
+# a few seconds. Anything you leave out keeps the value shown here.
+# Lines starting with # are notes.
+
+# ---------------------------------------------------------- the picture
+# Which part of background.jpg to keep in view when a screen crops it:
+# how far across, then how far down. 50% 0% keeps the top edge, 50% 50%
+# the middle. Words work too: center top, left, right bottom.
+background_focus = 50% 40%
+
+# How much to darken the picture so the words stay readable:
+# 0 (not at all) to 0.9 (nearly black).
+background_shade = 0.35
+
+# Slow movement of the picture or video itself:
+#   none   still
+#   zoom   a slow push in and out
+#   drift  a slow sway from side to side
+background_motion = none
+
+# How much to darken page.jpg, behind the rest of the page: 0 to 0.95.
+page_shade = 0.75
+
+# ------------------------------------------------------------ particles
+# How they move:
+#   rise   up from the bottom and away
+#   fall   down from the top, like snow, ash or embers
+#   float  hanging in the air, bobbing gently
+#   none   no particles
+# Left out (or with a # in front, as here), they rise if there are particle
+# images in the folder, and there are none if there aren't.
+# particles = rise
+
+# How many: 0 to 60.
+particle_count = 18
+
+# Their size in pixels, smallest to largest. Most come out small and
+# faint (far away) and a few big and bright (close).
+particle_size = 12-36
+
+# 1 is normal; 0.5 half as fast, 2 twice as fast (0.1 to 5).
+particle_speed = 1
+
+# How see-through the closest ones are: 0.05 (nearly invisible) to 1.
+particle_opacity = 0.9
+
+# Whether they turn as they move: yes or no.
+particle_spin = yes
+
+# Rising particles only: somewhere across the screen (0 to 100, 50 is the
+# middle) that they drift towards and shrink into, as if pulled into
+# something far away. none sends them straight up.
+particle_target = none

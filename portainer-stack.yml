@@ -1,0 +1,87 @@
+# The sign-up site as a Portainer stack.
+#
+# 1. Build the image once: Images > Build a new image. Name it
+#    azerothcore-websignup:latest, choose the URL build method, and enter
+#      https://github.com/kamakazedan/azerothcore-websignup.git
+#    with Dockerfile as the Dockerfile path. Build it again the same way to
+#    update the site, then use "Update the stack".
+# 2. Stacks > Add stack > Web editor: paste this file.
+# 3. Under Environment variables, set at least DB_PASSWORD, SECRET_KEY and
+#    WEBSIGNUP_FILES (a folder on the server holding theme/ and content/).
+#    Anything else you leave out keeps its default; README.md lists them.
+services:
+  websignup:
+    image: azerothcore-websignup:latest
+    pull_policy: never
+    container_name: ac-websignup
+    restart: unless-stopped
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD to the websignup database user's password}
+      SECRET_KEY: ${SECRET_KEY:-}
+      # What the page says
+      SITE_NAME: ${SITE_NAME:-}
+      TAGLINE: ${TAGLINE:-}
+      REALMLIST: ${REALMLIST:-}
+      CLIENT_DOWNLOAD_URL: ${CLIENT_DOWNLOAD_URL:-}
+      CLIENT_HAS_REALMLIST: ${CLIENT_HAS_REALMLIST:-}
+      GAME_VERSION: ${GAME_VERSION:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      # What it offers
+      REGISTRATION: ${REGISTRATION:-}
+      CHANGE_PASSWORD: ${CHANGE_PASSWORD:-}
+      SHOW_ONLINE_PLAYERS: ${SHOW_ONLINE_PLAYERS:-}
+      SHOW_TOP_PLAYERS: ${SHOW_TOP_PLAYERS:-}
+      ONLINE_LIST_SIZE: ${ONLINE_LIST_SIZE:-}
+      TOP_LIST_SIZE: ${TOP_LIST_SIZE:-}
+      HIDE_ACCOUNTS: ${HIDE_ACCOUNTS:-}
+      BOT_ACCOUNT_PREFIX: ${BOT_ACCOUNT_PREFIX:-}
+      # Accounts
+      MIN_PASSWORD_LENGTH: ${MIN_PASSWORD_LENGTH:-}
+      ACCOUNTS_PER_IP_PER_DAY: ${ACCOUNTS_PER_IP_PER_DAY:-}
+      ALLOW_SHARED_EMAIL: ${ALLOW_SHARED_EMAIL:-}
+      EXPANSION: ${EXPANSION:-}
+      # Database
+      DB_HOST: ${DB_HOST:-}
+      DB_PORT: ${DB_PORT:-}
+      DB_USER: ${DB_USER:-}
+      DB_TLS: ${DB_TLS:-}
+      AUTH_DB: ${AUTH_DB:-}
+      CHARACTERS_DB: ${CHARACTERS_DB:-}
+      REALM_ID: ${REALM_ID:-}
+      # Security
+      POW_DIFFICULTY: ${POW_DIFFICULTY:-}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      HSTS: ${HSTS:-}
+      # The realm's servers, to show whether it's up
+      WORLD_ADDR: ${WORLD_ADDR:-}
+      AUTH_ADDR: ${AUTH_ADDR:-}
+      # Fixed: where the folders below appear inside the container
+      CONTENT_DIR: /content
+      THEME_DIR: /theme
+      GOMEMLIMIT: 100MiB
+    ports:
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8090}:8080"
+    volumes:
+      # Your backgrounds and particles, and your own page text.
+      - ${WEBSIGNUP_FILES:?set WEBSIGNUP_FILES to a folder on the server, like /home/you/websignup}/theme:/theme:ro
+      - ${WEBSIGNUP_FILES}/content:/content:ro
+    networks:
+      - ac-network
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "3"
+
+networks:
+  # AzerothCore's own network, so the site can reach the database and
+  # servers by name.
+  ac-network:
+    external: true
+    name: ${AC_NETWORK:-azerothcore-playerbots_ac-network}

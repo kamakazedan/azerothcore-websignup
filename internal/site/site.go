@@ -47,6 +47,7 @@ type Config struct {
 	WorldAddr          string // ac-worldserver:8085, to tell whether the realm is up
 	AuthAddr           string // ac-authserver:3724
 	ContentDir         string
+	ThemeDir           string // your own backgrounds and particles; see theme.go
 	Proxies            Proxies
 	AccountsPerIPDay   int
 	HSTS               bool
@@ -60,6 +61,7 @@ type Server struct {
 	log    *slog.Logger
 	page   *template.Template
 	pages  *content
+	theme  *themeDir
 	static http.Handler
 	asset  string            // version stamp for static URLs
 	etags  map[string]string // static file -> ETag
@@ -119,6 +121,7 @@ func New(cfg Config, store game.Store, issuer *pow.Issuer, log *slog.Logger) (*S
 			"DOWNLOAD_URL": cfg.DownloadURL,
 			"GAME_VERSION": cfg.GameVersion,
 		}),
+		theme:  newThemeDir(cfg.ThemeDir, log),
 		static: http.FileServer(http.FS(static)),
 		asset:  asset,
 		etags:  etags,
@@ -140,8 +143,14 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /{$}", s.handlePage)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", s.staticHandler()))
 	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/static/img/favicon.svg?v="+s.asset, http.StatusMovedPermanently)
+		if th, _, _ := s.theme.get(); th.Favicon != "" {
+			http.Redirect(w, r, th.Favicon, http.StatusFound)
+			return
+		}
+		http.Redirect(w, r, "/static/img/favicon.svg?v="+s.asset, http.StatusFound)
 	})
+	mux.HandleFunc("GET /theme.css", s.serveThemeCSS)
+	mux.HandleFunc("GET /theme/{name}", s.serveThemeFile)
 	mux.HandleFunc("GET /api/status", s.handleStatus)
 	mux.HandleFunc("GET /api/live", s.handleLive)
 	mux.HandleFunc("GET /api/challenge", s.handleChallenge)
@@ -238,6 +247,7 @@ func hashFS(fsys fs.FS) (string, map[string]string) {
 
 type pageData struct {
 	Cfg         Config
+	Theme       *Theme
 	Asset       string
 	Content     map[string]template.HTML
 	Status      statusView
@@ -246,8 +256,10 @@ type pageData struct {
 }
 
 func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
+	th, _, _ := s.theme.get()
 	data := pageData{
 		Cfg:         s.cfg,
+		Theme:       th,
 		Asset:       s.asset,
 		Content:     s.pages.get(),
 		Status:      s.currentStatus(r.Context()),
@@ -422,7 +434,8 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 // rendered by the same templates as the page, so the page's script can
 // refresh them without a second copy of the markup.
 func (s *Server) handleLive(w http.ResponseWriter, r *http.Request) {
-	data := pageData{Cfg: s.cfg, Asset: s.asset, Status: s.currentStatus(r.Context())}
+	th, _, _ := s.theme.get()
+	data := pageData{Cfg: s.cfg, Theme: th, Asset: s.asset, Status: s.currentStatus(r.Context())}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	if err := s.page.ExecuteTemplate(w, "live", data); err != nil {
