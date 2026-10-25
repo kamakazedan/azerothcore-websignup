@@ -488,6 +488,7 @@ code {
   .tagline::after { animation: hero-rule 1.4s ease-out 1.8s both; transform-origin: left; }
   .hero .plaque,
   .hero .account { animation: hero-rise 1.4s ease-out 1.6s both; }
+  .hero .plaque.settled { animation: none; }
 }
 @keyframes hero-dawn { to { opacity: 0; } }
 @keyframes hero-name { from { opacity: 0; letter-spacing: .22em; filter: blur(6px); } }

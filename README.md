@@ -19,8 +19,9 @@ Players can:
   **rules**, in text you can change without touching the code
 
 It works on phones as well as desktops. The look of the top of the page is
-yours: a background picture or video and particles floating across it, from
-files you drop into a folder (see [theme/README.md](theme/README.md)).
+yours: full-screen background videos (several scenes, each in sizes for
+phones, desktops and 4K screens), a picture, or particles floating across
+it, from files you drop into a folder (see [theme/README.md](theme/README.md)).
 
 <img src="docs/phone.jpg" alt="The site on a phone" width="300">
 
