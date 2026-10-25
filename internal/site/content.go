@@ -21,10 +21,16 @@ import (
 // {{DISCORD_URL}} and {{GAME_VERSION}}.
 var contentFiles = []string{"connect.html", "about.html", "bots.html", "rules.html"}
 
+// botFiles are the parts about playerbots. Without playerbots the bots
+// part never shows, and the about part shows only if the site has its
+// own, since the built-in one describes a playerbots server.
+var botFiles = map[string]bool{"about.html": true, "bots.html": true}
+
 type content struct {
 	defaults fs.FS
 	dir      string
 	tokens   *strings.Replacer
+	noBots   bool
 
 	mu      sync.Mutex
 	checked time.Time
@@ -32,12 +38,12 @@ type content struct {
 	pages   map[string]template.HTML
 }
 
-func newContent(defaults fs.FS, dir string, tokens map[string]string) *content {
+func newContent(defaults fs.FS, dir string, tokens map[string]string, noBots bool) *content {
 	var pairs []string
 	for k, v := range tokens {
 		pairs = append(pairs, "{{"+k+"}}", html.EscapeString(v))
 	}
-	c := &content{defaults: defaults, dir: dir, tokens: strings.NewReplacer(pairs...), stamps: map[string]time.Time{}}
+	c := &content{defaults: defaults, dir: dir, tokens: strings.NewReplacer(pairs...), noBots: noBots, stamps: map[string]time.Time{}}
 	c.load()
 	return c
 }
@@ -92,8 +98,11 @@ func (c *content) loadLocked() {
 				}
 			}
 		}
-		if data == nil {
+		if data == nil && !(c.noBots && botFiles[name]) {
 			data, _ = fs.ReadFile(c.defaults, name)
+		}
+		if c.noBots && name == "bots.html" {
+			data = nil
 		}
 		// An empty file (or one with only spaces) hides its section.
 		text := strings.TrimSpace(string(data))

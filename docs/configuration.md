@@ -35,6 +35,7 @@ The look of the page has its own settings file, `theme.conf`: see
 | `ONLINE_LIST_SIZE` | `50` | |
 | `TOP_LIST_SIZE` | `10` | |
 | `HIDE_ACCOUNTS` | | Accounts kept out of the lists (GMs, test accounts), comma separated |
+| `PLAYERBOTS` | `1` | `0` for a server without playerbots: the page never mentions bots or AI players, the Bots section and the built-in About text go (your own `about.html` still shows), and `BOT_ACCOUNT_PREFIX` and `AI_PLAYERS` are ignored |
 | `BOT_ACCOUNT_PREFIX` | `RNDBOT` | Playerbots' accounts: counted as AI players, never listed, and nobody can sign up with a name starting like this |
 
 ## Accounts

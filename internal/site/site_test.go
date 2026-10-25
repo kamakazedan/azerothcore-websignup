@@ -33,6 +33,7 @@ func testConfig() Config {
 		ChangePassword:   true,
 		ShowOnline:       true,
 		ShowTop:          true,
+		Playerbots:       true,
 		Rules:            game.Rules{MinPassword: 8, BotPrefix: "RNDBOT"},
 		Proxies:          proxies,
 		AccountsPerIPDay: 3,
@@ -148,6 +149,18 @@ func TestPage(t *testing.T) {
 	}
 	if rec.Header().Get("X-Frame-Options") != "DENY" || rec.Header().Get("X-Content-Type-Options") != "nosniff" {
 		t.Error("security headers missing")
+	}
+}
+
+func TestPageWithoutPlayerbots(t *testing.T) {
+	h := newTestServer(t, func(c *Config) { c.Playerbots = false; c.AIPlayers = 1500 })
+	for _, path := range []string{"/", "/api/live", "/api/status"} {
+		body := strings.ToLower(strings.ReplaceAll(get(t, h, path).Body.String(), `"bots":0`, ""))
+		for _, bad := range []string{"bots", "ai player", "playerbot", "1,214", "1,500"} {
+			if strings.Contains(body, bad) {
+				t.Errorf("%s mentions %q with playerbots off", path, bad)
+			}
+		}
 	}
 }
 

@@ -51,7 +51,8 @@ type Config struct {
 	ThemeDir           string // your own backgrounds and particles; see theme.go
 	Proxies            Proxies
 	AccountsPerIPDay   int
-	AIPlayers          int // AI players to mention when the realm counts none online (AI_PLAYERS)
+	Playerbots         bool // the server runs playerbots; off, the page never mentions bots or AI players
+	AIPlayers          int  // AI players to mention when the realm counts none online (AI_PLAYERS)
 	HSTS               bool
 	Demo               bool
 }
@@ -103,6 +104,9 @@ func New(cfg Config, store game.Store, issuer *pow.Issuer, log *slog.Logger) (*S
 		return nil, err
 	}
 
+	if !cfg.Playerbots {
+		cfg.Rules.BotPrefix = "" // no account is a bot
+	}
 	var public string
 	if cfg.PublicURL != "" {
 		if u, err := url.Parse(cfg.PublicURL); err == nil {
@@ -123,7 +127,7 @@ func New(cfg Config, store game.Store, issuer *pow.Issuer, log *slog.Logger) (*S
 			"DOWNLOAD_URL": cfg.DownloadURL,
 			"DISCORD_URL":  cfg.DiscordURL,
 			"GAME_VERSION": cfg.GameVersion,
-		}),
+		}, !cfg.Playerbots),
 		theme:  newThemeDir(cfg.ThemeDir, log),
 		static: http.FileServer(http.FS(static)),
 		asset:  asset,
@@ -412,6 +416,9 @@ func (s *Server) currentStatus(ctx context.Context) statusView {
 		// say how many there are.
 		if v.Bots == 0 {
 			v.Bots = s.cfg.AIPlayers
+		}
+		if !s.cfg.Playerbots {
+			v.Bots = 0
 		}
 		v.Online, v.Top = snap.Online, snap.Top
 		v.Uptime = ""

@@ -136,6 +136,10 @@ func run(log *slog.Logger) error {
 		MinPassword: envInt("MIN_PASSWORD_LENGTH", 8),
 		BotPrefix:   env("BOT_ACCOUNT_PREFIX", "RNDBOT"),
 	}
+	playerbots := envBool("PLAYERBOTS", true)
+	if !playerbots {
+		rules.BotPrefix = "" // no account is a bot
+	}
 
 	var store game.Store
 	if demo {
@@ -213,6 +217,7 @@ func run(log *slog.Logger) error {
 		ThemeDir:           env("THEME_DIR", "/theme"),
 		Proxies:            proxies,
 		AccountsPerIPDay:   envInt("ACCOUNTS_PER_IP_PER_DAY", 3),
+		Playerbots:         playerbots,
 		AIPlayers:          envInt("AI_PLAYERS", 0),
 		HSTS:               envBool("HSTS", false),
 		Demo:               demo,
@@ -251,7 +256,7 @@ func run(log *slog.Logger) error {
 
 	errc := make(chan error, 1)
 	go func() {
-		log.Info("listening", "addr", addr, "site", name, "registration", cfg.Registration, "ai_players", cfg.AIPlayers)
+		log.Info("listening", "addr", addr, "site", name, "registration", cfg.Registration, "playerbots", cfg.Playerbots, "ai_players", cfg.AIPlayers)
 		errc <- httpSrv.ListenAndServe()
 	}()
 
