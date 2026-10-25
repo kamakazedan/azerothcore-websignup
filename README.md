@@ -143,7 +143,7 @@ All in `.env`. The defaults suit AzerothCore's own Docker setup.
 | Setting | Default | What it does |
 |---|---|---|
 | `SITE_NAME` | `AzerothCore` | The big name at the top of the page, and the page title |
-| `TAGLINE` | | The line under it |
+| `TAGLINE` | `Northrend awaits. Your legend begins here.` | The line under it, kept to one line (it shrinks to fit, so shorter reads bigger) |
 | `REALMLIST` | | The address in `set realmlist ...` |
 | `CLIENT_DOWNLOAD_URL` | | A client to download. Empty hides the button |
 | `CLIENT_HAS_REALMLIST` | `1` | That client already points at the realm, so its players can skip setting the realmlist |

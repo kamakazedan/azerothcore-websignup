@@ -183,7 +183,7 @@ func run(log *slog.Logger) error {
 	name := env("SITE_NAME", env("REALM_NAME", "AzerothCore"))
 	cfg := site.Config{
 		SiteName:           name,
-		Tagline:            env("TAGLINE", "Wrath of the Lich King, with a living world of AI players."),
+		Tagline:            env("TAGLINE", "Northrend awaits. Your legend begins here."),
 		Realmlist:          env("REALMLIST", ""),
 		DownloadURL:        env("CLIENT_DOWNLOAD_URL", ""),
 		ClientHasRealmlist: envBool("CLIENT_HAS_REALMLIST", true),
