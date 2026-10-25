@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
@@ -41,6 +42,17 @@ func envInt(key string, def int) int {
 		slog.Warn("not a number, using the default", "setting", key, "value", v, "default", def)
 	}
 	return def
+}
+
+// webURL reads a setting that must be a web address, so a typo can't put
+// something else in a link on the page.
+func webURL(key string) string {
+	v := env(key, "")
+	if u, err := url.Parse(v); v != "" && (err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "") {
+		slog.Warn("not a web address, leaving it out", "setting", key, "value", v)
+		return ""
+	}
+	return v
 }
 
 func envBool(key string, def bool) bool {
@@ -124,6 +136,10 @@ func run(log *slog.Logger) error {
 		MinPassword: envInt("MIN_PASSWORD_LENGTH", 8),
 		BotPrefix:   env("BOT_ACCOUNT_PREFIX", "RNDBOT"),
 	}
+	playerbots := envBool("PLAYERBOTS", true)
+	if !playerbots {
+		rules.BotPrefix = "" // no account is a bot
+	}
 
 	var store game.Store
 	if demo {
@@ -189,6 +205,7 @@ func run(log *slog.Logger) error {
 		ClientHasRealmlist: envBool("CLIENT_HAS_REALMLIST", true),
 		GameVersion:        env("GAME_VERSION", "3.3.5a (12340)"),
 		PublicURL:          strings.TrimRight(env("PUBLIC_URL", ""), "/"),
+		DiscordURL:         webURL("DISCORD_URL"),
 		Registration:       envBool("REGISTRATION", true),
 		ChangePassword:     envBool("CHANGE_PASSWORD", true),
 		ShowOnline:         envBool("SHOW_ONLINE_PLAYERS", true),
@@ -200,6 +217,7 @@ func run(log *slog.Logger) error {
 		ThemeDir:           env("THEME_DIR", "/theme"),
 		Proxies:            proxies,
 		AccountsPerIPDay:   envInt("ACCOUNTS_PER_IP_PER_DAY", 3),
+		Playerbots:         playerbots,
 		AIPlayers:          envInt("AI_PLAYERS", 0),
 		HSTS:               envBool("HSTS", false),
 		Demo:               demo,
@@ -238,7 +256,7 @@ func run(log *slog.Logger) error {
 
 	errc := make(chan error, 1)
 	go func() {
-		log.Info("listening", "addr", addr, "site", name, "registration", cfg.Registration, "ai_players", cfg.AIPlayers)
+		log.Info("listening", "addr", addr, "site", name, "registration", cfg.Registration, "playerbots", cfg.Playerbots, "ai_players", cfg.AIPlayers)
 		errc <- httpSrv.ListenAndServe()
 	}()
 

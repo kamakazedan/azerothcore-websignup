@@ -21,6 +21,7 @@ The look of the page has its own settings file, `theme.conf`: see
 | `CLIENT_HAS_REALMLIST` | `1` | That client already points at the realm, so its players can skip the realmlist step |
 | `GAME_VERSION` | `3.3.5a (12340)` | |
 | `PUBLIC_URL` | | The site's address, like `https://wow.example.com` |
+| `DISCORD_URL` | | An invite to your Discord, like `https://discord.gg/abc123`. It shows in the menu, under How to connect and after sign-up. Empty hides it |
 | `AI_PLAYERS` | | How many AI players to mention (like `1500`) when none are counted online, so the realm never sounds empty |
 
 ## What it offers
@@ -34,6 +35,7 @@ The look of the page has its own settings file, `theme.conf`: see
 | `ONLINE_LIST_SIZE` | `50` | |
 | `TOP_LIST_SIZE` | `10` | |
 | `HIDE_ACCOUNTS` | | Accounts kept out of the lists (GMs, test accounts), comma separated |
+| `PLAYERBOTS` | `1` | `0` for a server without playerbots: the page never mentions bots or AI players, the Bots section and the built-in About text go (your own `about.html` still shows), and `BOT_ACCOUNT_PREFIX` and `AI_PLAYERS` are ignored |
 | `BOT_ACCOUNT_PREFIX` | `RNDBOT` | Playerbots' accounts: counted as AI players, never listed, and nobody can sign up with a name starting like this |
 
 ## Accounts
