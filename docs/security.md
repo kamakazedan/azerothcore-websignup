@@ -80,7 +80,7 @@ and the image build doesn't run untrusted pull request code with secrets.
 | Medium | Commits merged in GitHub's web page carry the merger's email address | In GitHub's email settings, turn on **Keep my email addresses private** |
 | Low | HSTS is off by default | `HSTS=1` once the site is https only |
 | Low | The proof of work slows browsers, but a dedicated bot written in native code solves it quickly | Nothing: the per-address and site-wide limits do the real work |
-| Low | Five wrong passwords lock an account's password changes on the site for 15 minutes, so someone can annoy a known player | Nothing needed; logging in to the game isn't affected |
+| Low | To stop password guessing, five wrong passwords for an account pause password changes for it on the site for 15 minutes. Because the pause is per account, someone who knows a player's username could set it off on purpose and block that player's password changes for a while | Nothing needed: logging in to the game isn't affected, and the pause ends by itself |
 | Low | The database user can read every account's verifier, because a password change needs it | Keep the database off the internet and the user's password secret |
 | Low | GM and test accounts show in the player lists | List them in `HIDE_ACCOUNTS` |
 | Low | The base images and workflow actions are pulled by tag, not pinned to a digest | Optional: pin them for repeatable builds |
@@ -108,5 +108,9 @@ server:
 - The sign-up form says when an email address already has an account, so
   someone could check whether an address is registered. Hiding it would
   need emailed confirmations.
-- Five wrong passwords for an account in 15 minutes stops password changes
-  for it on the site for 15 minutes, for its owner too.
+- To stop password guessing, five wrong passwords for an account in 15
+  minutes pause password changes for that account on the site for 15
+  minutes. The pause applies to everyone, the owner included, so someone
+  who knows a username could set it off deliberately. It only affects
+  changing the password on this site: logging in to the game works as
+  normal.
