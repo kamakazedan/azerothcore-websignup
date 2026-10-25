@@ -94,6 +94,7 @@ All in `.env`. The defaults suit AzerothCore's own Docker setup.
 | `TAGLINE` | | The line under it |
 | `REALMLIST` | | The address in `set realmlist ...` |
 | `CLIENT_DOWNLOAD_URL` | | A client to download. Empty hides the button |
+| `CLIENT_HAS_REALMLIST` | `1` | That client already points at the realm, so its players can skip setting the realmlist |
 | `GAME_VERSION` | `3.3.5a (12340)` | |
 | `PUBLIC_URL` | | The site's address, e.g. `https://wow.example.com` |
 | `REGISTRATION` | `1` | `0` closes sign-ups |
@@ -214,11 +215,12 @@ stylesheet.
 
 ## Credits
 
-The art (sky, aurora, mountains, frost emblem) was drawn for this project.
-Nothing here comes from Blizzard. World of Warcraft and Wrath of the Lich
+The art (the torn sky, the crags and the crystal emblem) was drawn for
+this project; the scripts that paint the scene are in `art/`. Nothing here
+comes from Blizzard. World of Warcraft and Wrath of the Lich
 King are trademarks of Blizzard Entertainment, Inc., and this project isn't
 made or endorsed by them.
 
-Fonts are under the SIL Open Font License: Cinzel and Cinzel Decorative by
-Natanael Gama, Alegreya Sans by Juan Pablo del Peral and Huerta Tipográfica.
+Fonts are under the SIL Open Font License: Cinzel by Natanael Gama, and
+Alegreya Sans by Juan Pablo del Peral and Huerta Tipográfica.
 See `internal/site/static/fonts/`.

@@ -6,7 +6,7 @@
 <title>{{.Cfg.SiteName}}: create your account</title>
 <meta name="description" content="{{.Cfg.Tagline}}">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#081327">
+<meta name="theme-color" content="#05080f">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{.Cfg.SiteName}}">
 <meta property="og:description" content="{{.Cfg.Tagline}}">
@@ -15,7 +15,8 @@
 <link rel="canonical" href="{{.}}/">
 {{- end}}
 <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg?v={{.Asset}}">
-<link rel="preload" as="font" type="font/ttf" href="/static/fonts/CinzelDecorative-Bold.ttf" crossorigin>
+<link rel="preload" as="image" type="image/webp" href="/static/img/sky.webp">
+<link rel="preload" as="font" type="font/woff" href="/static/fonts/cinzel.woff" crossorigin>
 <link rel="preload" as="font" type="font/woff" href="/static/fonts/alegreya-sans-regular.woff" crossorigin>
 <link rel="stylesheet" href="/static/css/site.css?v={{.Asset}}">
 <script src="/static/js/site.js?v={{.Asset}}" defer></script>
@@ -52,8 +53,8 @@
 <main id="top">
 <section class="hero" aria-labelledby="realm-title">
   <div class="sky" aria-hidden="true"></div>
-  <div class="snow" aria-hidden="true"></div>
-  <div class="peaks" aria-hidden="true"></div>
+  <div class="shards" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="land" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <h1 id="realm-title" class="realm-name">{{.Cfg.SiteName}}</h1>
@@ -73,7 +74,7 @@
       <li>
         <h3>Get the game</h3>
         {{- if .Cfg.DownloadURL}}
-        <p>Download our ready-to-play Wrath of the Lich King client, version {{.Cfg.GameVersion}}, and unpack it somewhere outside Program Files.</p>
+        <p>Download our ready-to-play Wrath of the Lich King client, version {{.Cfg.GameVersion}}, and unpack it somewhere outside Program Files.{{if .Cfg.ClientHasRealmlist}} It already points at {{.Cfg.SiteName}}, so you can skip straight to logging in.{{end}}</p>
         <p><a class="btn btn-ghost" href="{{.Cfg.DownloadURL}}" rel="nofollow"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#download"></use></svg>Download the client</a></p>
         {{- else}}
         <p>You need the Wrath of the Lich King client, version {{.Cfg.GameVersion}}. Other versions can't connect.</p>
@@ -81,6 +82,9 @@
       </li>
       <li>
         <h3>Set your realmlist</h3>
+        {{- if and .Cfg.DownloadURL .Cfg.ClientHasRealmlist}}
+        <p class="skip-note">Only if you're using your own copy of the game: our client is already set.</p>
+        {{- end}}
         {{- if .Cfg.Realmlist}}
         <p>Open <code>realmlist.wtf</code> in Notepad. It's in the game folder, under <code>Data/enUS</code> or, on a UK client, <code>Data/enGB</code>. Replace everything in it with this line:</p>
         {{template "realmlist" (dict "ID" "realmlist" "Line" .Cfg.Realmlist "Asset" .Asset)}}
@@ -276,11 +280,19 @@
     </form>
     <div class="done" hidden>
       <h3 class="done-title" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="/static/img/icons.svg?v={{.Asset}}#check"></use></svg><span data-done-message>Your account is ready.</span></h3>
+      {{- if and .Cfg.DownloadURL .Cfg.ClientHasRealmlist}}
+      <p>Start <code>Wow.exe</code> and log in as <strong data-done-user></strong>. Our client already points at the realm.</p>
+      {{- if .Cfg.Realmlist}}
+      <p>Using your own copy of the game? Put this line in <code>realmlist.wtf</code> first:</p>
+      {{template "realmlist" (dict "ID" "realmlist-done" "Line" .Cfg.Realmlist "Asset" .Asset)}}
+      {{- end}}
+      {{- else}}
       {{- if .Cfg.Realmlist}}
       <p>To play, point your game at the realm with this line in <code>realmlist.wtf</code>:</p>
       {{template "realmlist" (dict "ID" "realmlist-done" "Line" .Cfg.Realmlist "Asset" .Asset)}}
       {{- end}}
       <p>Then start <code>Wow.exe</code> and log in as <strong data-done-user></strong>.</p>
+      {{- end}}
       <p class="done-links"><a href="#connect">All the setup steps</a><button type="button" class="linklike" data-again>Make another account</button></p>
     </div>
   </div>
