@@ -4,7 +4,8 @@
 #    ghcr.io/kamakazedan/azerothcore-websignup:latest. Nothing to build here.
 # 2. Stacks > Add stack > Web editor: paste this file.
 # 3. Under Environment variables, set at least DB_PASSWORD, SECRET_KEY and
-#    WEBSIGNUP_FILES (a folder on the server holding theme/ and content/).
+#    WEBSIGNUP_FILES (your clone of this repository on the server, whose
+#    theme/ and content/ folders hold your own files).
 #    Anything else you leave out keeps its default; README.md lists them.
 # To update the site: open the stack, Update the stack, with Re-pull image on.
 services:
@@ -60,7 +61,7 @@ services:
       - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8090}:8080"
     volumes:
       # Your backgrounds and particles, and your own page text.
-      - ${WEBSIGNUP_FILES:?set WEBSIGNUP_FILES to a folder on the server, like /home/you/websignup}/theme:/theme:ro
+      - ${WEBSIGNUP_FILES:?set WEBSIGNUP_FILES to your clone of this repository, like /home/you/azerothcore-websignup}/theme:/theme:ro
       - ${WEBSIGNUP_FILES}/content:/content:ro
     networks:
       - ac-network
