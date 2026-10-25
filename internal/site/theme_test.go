@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -33,6 +34,7 @@ particle_target = 40%
 video_scene = Lich-King
 video_change = 45s
 video_quality = 1080p
+video_flip = Lich-King, night-elf-archer
 `))
 	if len(problems) > 0 {
 		t.Fatalf("problems: %v", problems)
@@ -40,7 +42,11 @@ video_quality = 1080p
 	want := ThemeSettings{Focus: "50% 0%", Shade: .5, Motion: "zoom", PageShade: .8, Particles: "float", Count: 7,
 		SizeMin: 10, SizeMax: 50, Speed: 2, Opacity: .6, Spin: false, Target: 40,
 		Scene: "lich-king", Change: 45, Quality: 1080}
-	if s != want {
+	if strings.Join(s.Flip, ",") != "lich-king,night-elf-archer" {
+		t.Errorf("video_flip: %q", s.Flip)
+	}
+	s.Flip = nil
+	if !reflect.DeepEqual(s, want) {
 		t.Errorf("got  %+v\nwant %+v", s, want)
 	}
 
@@ -59,7 +65,7 @@ just some words
 	if len(problems) != 10 {
 		t.Errorf("want 10 problems, got %d: %v", len(problems), problems)
 	}
-	if s != defaultSettings() {
+	if !reflect.DeepEqual(s, defaultSettings()) {
 		t.Errorf("bad values should leave the defaults: %+v", s)
 	}
 }
@@ -281,7 +287,7 @@ func TestScenes(t *testing.T) {
 		"Frozen Throne.mp4", "notes.jpg"} {
 		write(t, dir, n, "x")
 	}
-	write(t, dir, "theme.conf", "video_scene = lich-king\nvideo_change = 30\n")
+	write(t, dir, "theme.conf", "video_scene = lich-king\nvideo_change = 30\nvideo_flip = night-elf-archer, arthas\n")
 	var logs bytes.Buffer
 	td := newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)))
 	th, files, _ := td.get()
@@ -305,11 +311,14 @@ func TestScenes(t *testing.T) {
 	if _, ok := files["Night-Elf-Archer-1920x1080.mp4"]; !ok {
 		t.Error("a video's file should be served under its own name")
 	}
+	if lk.Flip || !ne.Flip || !strings.Contains(th.Video, `"flip":true`) {
+		t.Errorf("only night-elf-archer should be flipped: %v %v", lk.Flip, ne.Flip)
+	}
 	if !strings.Contains(th.Video, `"scene":"lich-king","change":30`) {
 		t.Errorf("settings missing from %s", th.Video)
 	}
 	out := logs.String()
-	for _, want := range []string{"lich-king (720x1280, 1920x1080, 3840x2160)", "Frozen Throne.mp4 isn't used: video names must be plain",
+	for _, want := range []string{"lich-king (720x1280, 1920x1080, 3840x2160)", "video_flip names arthas", "Frozen Throne.mp4 isn't used: video names must be plain",
 		"notes.jpg isn't used"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("the log doesn't say %q:\n%s", want, out)
