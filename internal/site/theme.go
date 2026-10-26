@@ -133,6 +133,7 @@ type ThemeSettings struct {
 	Spin      bool
 	Target    float64  // rise: how far across (0-100) they drift towards; -1 for straight up
 	Scene     string   // video_scene: random, or the name of one
+	Playlist  []string // video_scenes: the scenes to play, in order; empty for all of them
 	Change    int      // video_change: seconds before moving on to the next scene; 0 for never
 	Preload   int      // video_preload: how early the next scene starts loading, as a percentage of Change
 	Quality   int      // video_quality: the largest size to send, by its short side (720, 1080...); 0 for any
@@ -307,22 +308,55 @@ func (t *themeDir) refreshLocked(first bool) {
 	}
 	if len(th.Scenes) > 0 {
 		s := th.Settings
-		if s.Scene != "random" && !hasScene(th.Scenes, s.Scene) {
-			problems = append(problems, fmt.Sprintf("theme.conf: video_scene = %s, but there are no videos called that; "+
-				"picking one at random", s.Scene))
-			th.Settings.Scene = "random"
+		// video_scenes picks which scenes play, and their order; the rest
+		// stay in the folder unused, ready to be switched on.
+		if len(s.Playlist) > 0 {
+			var picked []themeScene
+			for _, want := range s.Playlist {
+				name := findScene(th.Scenes, want)
+				if name == "" {
+					problems = append(problems, fmt.Sprintf("theme.conf: video_scenes names %s, but there are no videos called that", want))
+					continue
+				}
+				for _, sc := range th.Scenes {
+					if sc.Name == name && !hasScene(picked, name) {
+						picked = append(picked, sc)
+					}
+				}
+			}
+			if len(picked) > 0 {
+				th.Scenes = picked
+				// Start on the first, unless video_scene names another in the list.
+				if s.Scene == "random" || findScene(picked, s.Scene) == "" {
+					th.Settings.Scene = picked[0].Name
+				}
+			} else {
+				problems = append(problems, "theme.conf: none of the video_scenes are in the theme folder; playing them all")
+			}
 		}
-		for _, name := range s.Flip {
-			if name != "all" && !hasScene(th.Scenes, name) {
-				problems = append(problems, fmt.Sprintf("theme.conf: video_flip names %s, but there are no videos called that", name))
+		if sc := th.Settings.Scene; sc != "random" {
+			if name := findScene(th.Scenes, sc); name != "" {
+				th.Settings.Scene = name
+			} else {
+				problems = append(problems, fmt.Sprintf("theme.conf: video_scene = %s, but there are no videos called that; "+
+					"picking one at random", sc))
+				th.Settings.Scene = "random"
+			}
+		}
+		flip := map[string]bool{}
+		for _, want := range s.Flip {
+			if want == "all" {
+				for _, sc := range th.Scenes {
+					flip[sc.Name] = true
+				}
+			} else if name := findScene(th.Scenes, want); name != "" {
+				flip[name] = true
+			} else {
+				problems = append(problems, fmt.Sprintf("theme.conf: video_flip names %s, but there are no videos called that", want))
 			}
 		}
 		for i := range th.Scenes {
-			for _, name := range s.Flip {
-				if name == "all" || name == th.Scenes[i].Name {
-					th.Scenes[i].Flip = true
-				}
-			}
+			th.Scenes[i].Flip = flip[th.Scenes[i].Name]
 		}
 		js, _ := json.Marshal(struct {
 			Scene   string       `json:"scene"`
@@ -430,6 +464,25 @@ func scenes(regular map[string]os.DirEntry, url func(string) string, background 
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
+}
+
+// findScene returns the scene a name in theme.conf means: the one called
+// exactly that, or else the only one whose name starts with it
+// (dark-ranger-sylvanas for dark-ranger-sylvanas-windrunner); "" if none.
+func findScene(scenes []themeScene, name string) string {
+	if hasScene(scenes, name) {
+		return name
+	}
+	found := ""
+	for _, sc := range scenes {
+		if strings.HasPrefix(sc.Name, name) {
+			if found != "" {
+				return "" // more than one: too vague to guess
+			}
+			found = sc.Name
+		}
+	}
+	return found
 }
 
 func hasScene(scenes []themeScene, name string) bool {
@@ -643,6 +696,23 @@ func parseThemeConf(data []byte) (ThemeSettings, []string) {
 				s.Scene = v
 			default:
 				bad(key, val, "random, or the name of one of your videos")
+			}
+		case "video_scenes", "scenes":
+			s.Playlist = nil
+			ok := true
+			for _, name := range strings.FieldsFunc(strings.ToLower(val), func(r rune) bool { return r == ',' || r == ' ' || r == '\t' }) {
+				switch {
+				case name == "all":
+					s.Playlist = nil
+				case sceneName.MatchString(name):
+					s.Playlist = append(s.Playlist, name)
+				default:
+					ok = false
+				}
+			}
+			if !ok {
+				s.Playlist = nil
+				bad(key, val, "a list of your videos' names in the order to play them, like lich-king, night-elf-archer, or all")
 			}
 		case "video_change", "scene_change":
 			switch v := strings.ToLower(val); v {
