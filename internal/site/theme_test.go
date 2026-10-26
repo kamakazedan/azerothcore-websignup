@@ -32,6 +32,7 @@ particle_opacity = .6
 particle_spin = no
 particle_target = 40%
 video_scene = Lich-King
+video_scenes = lich-king, Night-Elf
 video_change = 45s
 video_preload = 25%
 video_quality = 1080p
@@ -43,6 +44,10 @@ video_flip = Lich-King, night-elf-archer
 	want := ThemeSettings{Focus: "50% 0%", Shade: .5, Motion: "zoom", PageShade: .8, Particles: "float", Count: 7,
 		SizeMin: 10, SizeMax: 50, Speed: 2, Opacity: .6, Spin: false, Target: 40,
 		Scene: "lich-king", Change: 45, Preload: 25, Quality: 1080}
+	if strings.Join(s.Playlist, ",") != "lich-king,night-elf" {
+		t.Errorf("video_scenes: %q", s.Playlist)
+	}
+	s.Playlist = nil
 	if strings.Join(s.Flip, ",") != "lich-king,night-elf-archer" {
 		t.Errorf("video_flip: %q", s.Flip)
 	}
@@ -356,5 +361,62 @@ func TestScenes(t *testing.T) {
 	th, _, _ = td.get()
 	if th.Settings.Scene != "random" || !strings.Contains(logs.String(), "no videos called that") {
 		t.Errorf("scene %q, log:\n%s", th.Settings.Scene, logs.String())
+	}
+}
+
+// video_scenes picks which scenes play and in what order; the start of a
+// name is enough when only one video begins with it.
+func TestScenePlaylist(t *testing.T) {
+	dir := t.TempDir()
+	for _, n := range []string{"lich-king.1920x1080.mp4", "dark-ranger-sylvanas-windrunner.1920x1080.mp4",
+		"night-elf-archer.1920x1080.mp4", "halloween-1.1920x1080.mp4", "halloween-2.1920x1080.mp4"} {
+		write(t, dir, n, "x")
+	}
+	load := func(conf string) (*Theme, string) {
+		t.Helper()
+		write(t, dir, "theme.conf", conf)
+		var logs bytes.Buffer
+		td := newThemeDir(dir, slog.New(slog.NewTextHandler(&logs, nil)), "", "")
+		th, _, _ := td.get()
+		return th, logs.String()
+	}
+	names := func(th *Theme) string {
+		var n []string
+		for _, sc := range th.Scenes {
+			n = append(n, sc.Name)
+		}
+		return strings.Join(n, ",")
+	}
+
+	th, out := load("video_scenes = night-elf-archer, dark-ranger-sylvanas, arthas, halloween\nvideo_flip = dark-ranger\n")
+	if got := names(th); got != "night-elf-archer,dark-ranger-sylvanas-windrunner" {
+		t.Errorf("scenes %q, want the two listed that exist, in that order", got)
+	}
+	if th.Settings.Scene != "night-elf-archer" || !strings.Contains(th.Video, `"scene":"night-elf-archer"`) {
+		t.Errorf("should start on the first listed, got %q", th.Settings.Scene)
+	}
+	if !th.Scenes[1].Flip || th.Scenes[0].Flip {
+		t.Errorf("video_flip = dark-ranger should mirror only that scene: %+v", th.Scenes)
+	}
+	for _, want := range []string{"video_scenes names arthas", "video_scenes names halloween"} { // halloween is ambiguous
+		if !strings.Contains(out, want) {
+			t.Errorf("the log doesn't say %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(th.Video, "lich-king") || strings.Contains(th.Video, "halloween") {
+		t.Errorf("scenes not listed shouldn't reach the page: %s", th.Video)
+	}
+
+	// video_scene can pick which of the listed scenes to start on.
+	th, _ = load("video_scenes = lich-king, halloween-2\nvideo_scene = halloween-2\n")
+	if names(th) != "lich-king,halloween-2" || th.Settings.Scene != "halloween-2" {
+		t.Errorf("got %q starting on %q", names(th), th.Settings.Scene)
+	}
+
+	// all, or nothing that exists, plays every scene.
+	for _, conf := range []string{"video_scenes = all\n", "video_scenes = arthas\n", ""} {
+		if th, _ := load(conf); len(th.Scenes) != 5 || th.Settings.Scene != "random" {
+			t.Errorf("%q: %d scenes, starting on %q; want all 5 at random", conf, len(th.Scenes), th.Settings.Scene)
+		}
 	}
 }

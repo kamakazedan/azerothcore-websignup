@@ -75,6 +75,7 @@ explains every setting:
 | `particle_spin` | `yes` | Whether they turn as they move |
 | `particle_target` | `none` | Rising particles drift towards this point across the screen (`0` to `100`) and shrink into it |
 | `video_scene` | `random` | Which scene each visit starts on: `random`, or a scene's name like `lich-king` |
+| `video_scenes` | `all` | Which scenes play, in order, like `lich-king, dark-ranger-sylvanas`. Others stay in the folder unused until you list them (handy for seasonal ones). Starts on the first, unless `video_scene` names another in the list |
 | `video_change` | `0` | Seconds before fading to the next scene (`10` to `3600`); `0` stays on one |
 | `video_preload` | `50%` | How early the next scene starts loading, as a share of `video_change`, so it fades in on time. `0` waits until it's due |
 | `video_flip` | `none` | Scenes to show mirrored left to right, like `lich-king, night-elf-archer`, or `all` |

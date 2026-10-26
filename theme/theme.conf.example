@@ -24,6 +24,13 @@ background_motion = none
 # videos without its size, like lich-king for lich-king.1920x1080.mp4.
 video_scene = random
 
+# Which scenes play, and in what order, separated by commas. Others stay in
+# the folder unused, so seasonal ones can wait there until you list them:
+#   video_scenes = lich-king, dark-ranger-sylvanas-windrunner
+# The start of a name is enough if only one video begins with it. all (or
+# leaving this out) plays every scene. The first listed plays first.
+video_scenes = all
+
 # Seconds before fading to the next scene, 10 to 3600. 0 stays on the
 # one it started with.
 video_change = 0
