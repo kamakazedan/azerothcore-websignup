@@ -36,11 +36,20 @@
     const conn = navigator.connection || {};
     const thrifty = !!conn.saveData || /(^|-)2g$/.test(conn.effectiveType || '');
 
+    // sizeFor picks a scene's size for the backdrop as it is now. Each
+    // size is scored on two things: how much of the picture it loses to
+    // the backdrop's shape (a portrait video in a window that's nearly
+    // square loses half of it), and how far it has to be stretched to
+    // cover. Of the sizes that stay sharp, the one that keeps the most
+    // of the picture wins, then the smallest; if none stays sharp, the
+    // one stretched least. Whether the window is taller than it is wide
+    // decides nothing on its own: a browser snapped to half of a big
+    // screen is, and still wants the landscape video.
     const sizeFor = (scene) => {
       const r = backdrop.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const want = [r.width * dpr, r.height * dpr];
-      const upright = r.height > r.width;
+      const w = Math.max(r.width, 1) * dpr;
+      const h = Math.max(r.height, 1) * dpr;
       let sizes = scene.sizes;
       if (cfg.quality) {
         const capped = sizes.filter((v) => !v.w || Math.min(v.w, v.h) <= cfg.quality);
@@ -48,13 +57,21 @@
       }
       const sized = sizes.filter((v) => v.w);
       if (!sized.length) return sizes[0];
-      const turned = sized.filter((v) => (v.h > v.w) === upright);
-      const pool = turned.length ? turned : sized;
-      if (thrifty) return pool[0];
+      const shape = w / h;
+      const kept = (v) => { const a = v.w / v.h; return Math.min(a, shape) / Math.max(a, shape); };
+      const stretch = (v) => Math.max(w / v.w, h / v.h);
+      // Sizes within a few percent of each other in shape count as the same.
+      const best = (pool) => {
+        const most = Math.max(...pool.map(kept));
+        return pool.filter((v) => kept(v) >= most - 0.05);
+      };
+      if (thrifty) return best(sized)[0];
       // A darkened background in motion still looks sharp stretched by
       // half again, so 1080p does up to about 2900 pixels across. The next
       // size up would cost four times the memory for no visible gain.
-      return pool.find((v) => Math.max(want[0] / v.w, want[1] / v.h) <= 1.5) || pool[pool.length - 1];
+      const sharp = sized.filter((v) => stretch(v) <= 1.5);
+      if (sharp.length) return best(sharp)[0];
+      return sized.reduce((m, v) => (stretch(v) < stretch(m) ? v : m));
     };
 
     // release empties a video out and takes it off the page. Pausing and
@@ -86,7 +103,9 @@
       v.disablePictureInPicture = true;
       if (scene.flip) v.classList.add('flip');
       if (scene.poster) v.poster = scene.poster;
-      for (const s of sizeFor(scene).src) {
+      const size = sizeFor(scene);
+      v.size = size;
+      for (const s of size.src) {
         const source = doc.createElement('source');
         source.src = s.url;
         source.type = s.type;
@@ -185,15 +204,27 @@
         };
         cycle();
       }
-      // A phone turned on its side wants the other shape of video.
-      let upright = innerHeight > innerWidth;
+      // When the window changes size (a phone turned on its side, a
+      // browser snapped to half the screen and back, or made full screen)
+      // and the scene now wants a different size of video, that size
+      // fades in over it. Waits for the window to settle first, so
+      // dragging its edge doesn't start a dozen downloads.
+      let settle = 0;
       window.addEventListener('resize', () => {
-        const now = innerHeight > innerWidth;
-        if (now === upright) return;
-        upright = now;
-        release(next); // loaded for the other shape
-        next = null;
-        play(scenes[i], false);
+        clearTimeout(settle);
+        settle = setTimeout(() => {
+          const v = fading || showing;
+          if (!v || !live() || sizeFor(scenes[i]) === v.size) return;
+          if (next && sizeFor(scenes[(i + 1) % scenes.length]) !== next.size) {
+            release(next); // loaded for the old size
+            next = null;
+          }
+          // Pick up where the one showing has got to.
+          const n = make(scenes[i]);
+          const at = v.currentTime;
+          n.addEventListener('loadedmetadata', () => { n.currentTime = at % (n.duration || Infinity); }, { once: true });
+          start(n, false);
+        }, 400);
       });
     }
   }
