@@ -1,60 +1,138 @@
-<h2>Playing with bots</h2>
-<p class="lede">Bots in your group answer to these, typed in party chat in lowercase. The ones that start with a dot work in any chat box.</p>
+<h2>Talking to your bots</h2>
+<p class="lede">Say it the way you would to anyone. The bot does it and answers in its own words, so you hear &ldquo;ok, give us a shout when you want us following&rdquo; instead of &ldquo;Staying&rdquo;.</p>
+<p>In party or raid chat an order is for every bot that takes orders from you. Put a bot's name in it (&ldquo;Joanni stay here&rdquo;) and it's for that bot only. A whisper is for the bot you whisper.</p>
 
-<h3>Party chat commands</h3>
+<h3>Orders</h3>
 <dl class="pairs">
   <div>
-    <dt><code>follow</code> and <code>stay</code></dt>
-    <dd>Follow you, or hold where they are.</dd>
+    <dt><code>stay back</code>, <code>wait here</code>, <code>hold position</code>, <code>stay put</code>, <code>dont move</code>, <code>stop following</code></dt>
+    <dd>They stay where they are until you say to follow.</dd>
   </div>
   <div>
-    <dt><code>attack</code></dt>
-    <dd>Attack your target.</dd>
+    <dt><code>follow me</code>, <code>come with me</code>, <code>on me</code>, <code>come here</code>, <code>get back here</code>, <code>regroup</code>, <code>stay close</code></dt>
+    <dd>They follow you.</dd>
   </div>
   <div>
-    <dt><code>flee</code></dt>
-    <dd>Drop the fight and follow you.</dd>
+    <dt><code>attack my target</code>, <code>kill that</code>, <code>focus it</code>, <code>assist me</code>, <code>burn it</code></dt>
+    <dd>They attack what you have targeted. With nothing targeted, they say so.</dd>
   </div>
   <div>
-    <dt><code>summon</code></dt>
-    <dd>Teleport to you. It's the fix for a bot that's stuck or lost.</dd>
+    <dt><code>run!</code>, <code>fall back</code>, <code>get out of there</code>, <code>retreat</code>, <code>leg it</code></dt>
+    <dd>They break off and come back to you, and keep out of fights until about 8 seconds after it ends, then fight normally again. Any other order, like &ldquo;attack my target&rdquo;, ends it straight away.</dd>
   </div>
   <div>
-    <dt><code>drink</code></dt>
-    <dd>Casters low on mana sit down and drink.</dd>
+    <dt><code>release</code>, <code>res</code>, <code>respawn</code>, <code>run back</code>, <code>get up</code> (to a dead bot)</dt>
+    <dd>It releases and runs back to its body. From a dungeon it runs from the graveyard to the entrance and walks in.</dd>
   </div>
   <div>
-    <dt><code>release</code> and <code>revive</code></dt>
-    <dd>Release a dead bot's spirit, then use the spirit healer.</dd>
+    <dt><code>Joanni come trade me</code>, <code>open a trade</code>, <code>trade with me</code></dt>
+    <dd>It walks over and offers you a trade.</dd>
   </div>
   <div>
-    <dt><code>@heal follow</code></dt>
-    <dd>Start with <code>@tank</code>, <code>@heal</code> or <code>@dps</code> to talk to just those bots.</dd>
+    <dt><code>hearth out</code>, <code>use your hearthstone</code>, <code>hs out</code></dt>
+    <dd>They hearth home, and one whose hearthstone is on cooldown says so. Only by name, by whisper, or with &ldquo;everyone&rdquo;: a bare &ldquo;hearth&rdquo; is just chat.</dd>
+  </div>
+  <div>
+    <dt><code>Zonin you're stuck</code>, <code>use unstuck</code></dt>
+    <dd>It does what the stuck tool does: in a dungeon back to the entrance, outside to the nearest graveyard, then walks back. Nothing is ever summoned.</dd>
+  </div>
+  <div>
+    <dt><code>buffs pls</code>, <code>rebuff</code>, <code>buff us</code></dt>
+    <dd>Priests, mages, druids and paladins buff the group.</dd>
+  </div>
+  <div>
+    <dt><code>pull</code>, <code>pull when ready</code>, <code>go ahead and pull</code> (to the tank)</dt>
+    <dd>The tank pulls your target, or the skull when you have nothing targeted.</dd>
+  </div>
+  <div>
+    <dt><code>Joanni leave the group</code>, <code>you can leave now</code></dt>
+    <dd>That bot leaves the group. Only by name, by whisper, or with &ldquo;everyone&rdquo;.</dd>
   </div>
 </dl>
-<p class="callout"><strong>Careful with &ldquo;go&rdquo;.</strong> On its own in party chat, <code>go</code> is a bot command: every bot runs at the nearest creature. Say <code>lets go</code> instead.</p>
+<p>Trade, unstuck and leave are for one bot: name it, whisper it, or say it straight after that bot spoke to you. Asking nicely is still an order: &ldquo;can you wait here?&rdquo;, &ldquo;pls come trade me&rdquo;.</p>
 
-<h3>Dungeon Clear</h3>
+<h3>Talk, not orders</h3>
+<p>These stay ordinary chat, and the bots just reply:</p>
+<ul>
+  <li>Questions: &ldquo;should we wait here?&rdquo;, &ldquo;why are you staying?&rdquo;</li>
+  <li>Negatives: &ldquo;dont stay here&rdquo;, &ldquo;no need to wait&rdquo;</li>
+  <li>Conditions: &ldquo;if it runs, kill it&rdquo;</li>
+  <li>Talk that only mentions an order: &ldquo;we should stay here and fight&rdquo;</li>
+  <li>Two different orders in one line: &ldquo;follow me and stay here&rdquo;</li>
+  <li>A one-bot order said to nobody in particular: &ldquo;come trade me&rdquo; with four bots about</li>
+  <li>About you or someone else: &ldquo;ill wait here&rdquo;, &ldquo;gonna hearth&rdquo;, &ldquo;they attack&rdquo;. Asking for buffs is still asking: &ldquo;i need buffs&rdquo;.</li>
+</ul>
+
+<h3>Dungeon Clear, with a bot tank</h3>
 <dl class="pairs">
   <div>
-    <dt><code>ready</code> or <code>.dc on</code></dt>
-    <dd>Starts the run once you're inside. You need a bot tank in the group, and you heal or do damage. The tank leads the way.</dd>
+    <dt><code>ready</code>, <code>r?</code>, <code>lets go</code>, <code>ok carry on</code>, <code>im back</code>, <code>im ready now</code></dt>
+    <dd>The run starts, or carries on.</dd>
   </div>
   <div>
-    <dt><code>mb</code>, <code>wait</code> or <code>brb</code></dt>
-    <dd>Pauses the run, and <code>ready</code> carries on. You can ask the group what's next, too.</dd>
+    <dt><code>mb</code>, <code>wait</code>, <code>oom</code>, <code>brb</code>, <code>need mana</code>, <code>stay here</code>, <code>hold position</code></dt>
+    <dd>The run pauses where it is, and the tank says it will wait.</dd>
   </div>
   <div>
-    <dt><code>.dc pause</code></dt>
-    <dd>Pauses or resumes the run.</dd>
-  </div>
-  <div>
-    <dt><code>.dc skip</code></dt>
-    <dd>Skips something the bots are stuck on.</dd>
-  </div>
-  <div>
-    <dt><code>.dc off</code></dt>
-    <dd>Stops the run. Use it to tank yourself: the bots follow you and fight what you pull.</dd>
+    <dt><code>ok im done</code>, <code>done drinking</code>, <code>full</code>, <code>full mana</code>, <code>topped up</code></dt>
+    <dd>The run carries on. Only while it is paused.</dd>
   </div>
 </dl>
-<p>Bots stuck or lost in a dungeon? Type <code>.dc pause</code>, then <code>summon</code> and <code>follow</code> in party chat, then <code>.dc pause</code> again to carry on.</p>
+<p>When you come into a dungeon, the tank tells the group to let it know when everyone is ready, and it says so in party when every boss is dead. When the run starts or carries on, any bot you told to stay comes along. Lines starting with <code>dc</code> are Dungeon Clear's own commands, and bots don't chat about them.</p>
+<p>Rests end once the healer is back to 80% mana and the damage dealers to 50%. One still drinking when the tank moves off finishes its drink first, then catches up: the tank waits for anyone but the healer up to 40 yards behind it, and for the healer up to 25.</p>
+
+<h3>Food and water</h3>
+<p>Ask the way you would ask a person: &ldquo;water pls&rdquo;, &ldquo;mage can i get food&rdquo;, &ldquo;anyone got water?&rdquo;, &ldquo;Frostiq can you give me mana pots&rdquo;. A mage in the group conjures the best you can use at your level and opens a trade with it already in. It never asks for gold. &ldquo;mb&rdquo;, &ldquo;oom&rdquo; and &ldquo;need mana&rdquo; stay mana breaks for the tank.</p>
+
+<h3>Raid marks</h3>
+<dl class="pairs marks">
+  <div>
+    <dt class="mark-skull">Skull</dt>
+    <dd>Kill first. Putting it on a mob starts the fight.</dd>
+  </div>
+  <div>
+    <dt class="mark-cross">Cross</dt>
+    <dd>Kill next. It becomes the skull when the skull dies, if it's already in the fight.</dd>
+  </div>
+  <div>
+    <dt class="mark-moon">Moon</dt>
+    <dd>Mage polymorph.</dd>
+  </div>
+  <div>
+    <dt class="mark-star">Star</dt>
+    <dd>Rogue sap.</dd>
+  </div>
+  <div>
+    <dt class="mark-diamond">Diamond</dt>
+    <dd>Warlock banish or fear.</dd>
+  </div>
+  <div>
+    <dt class="mark-circle">Circle</dt>
+    <dd>Priest shackle undead.</dd>
+  </div>
+  <div>
+    <dt class="mark-triangle">Triangle</dt>
+    <dd>Druid hibernate, roots or cyclone. Shamans have no crowd control in playerbots, so triangle is the druid's.</dd>
+  </div>
+  <div>
+    <dt class="mark-square">Square</dt>
+    <dd>Hunter freezing trap.</dd>
+  </div>
+</dl>
+<ol>
+  <li>Mark the pack. Nothing happens yet.</li>
+  <li>Put the star on a mob that isn't fighting, and a rogue in the group sneaks over and saps it.</li>
+  <li>Put the skull on the mob to kill first. The fight starts, and each class takes its own mark as the pack comes in.</li>
+</ol>
+<p>While you are marking, the skull moves on by itself: to the cross, then to the nearest loose mob nobody marked. So the bots finish the loose mobs before they break anything that is controlled. It only ever moves onto a mob that's already fighting you: a cross on the next pack waits until you put the skull on it.</p>
+
+<h3>When bots die</h3>
+<p>A dead bot with nobody left standing who can resurrect it (no living priest, paladin, shaman or druid who has learned the spell) releases by itself, runs back and gets up. If someone can rez it, it waits for the rez, for up to a minute of nobody fighting. During a Dungeon Clear run, the run decides first; once the run is called off, the bots get themselves back up. &ldquo;res&rdquo; or &ldquo;release&rdquo; said to a dead bot makes it go at once, except during a run, which decides that for itself.</p>
+
+<h3>Playerbots' own commands</h3>
+<p>Playerbots also reads every chat line as one of its own commands, so a few phrases do more than you'd think:</p>
+<ul>
+  <li><code>leave it</code> makes a bot leave the group.</li>
+  <li><code>go ahead</code> sends every bot walking off.</li>
+  <li><code>buff me</code> whispers you a list of potions.</li>
+</ul>

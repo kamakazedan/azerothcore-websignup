@@ -1226,6 +1226,21 @@ noscript .alert { margin: 0 0 20px; }
   .pairs dd { margin: 0; }
 }
 
+/* Raid marks, named in their in-game colours. */
+.marks > div { align-items: baseline; }
+.marks dt { font: 600 1.125rem/1.2 var(--font-head); letter-spacing: .02em; }
+@media (min-width: 760px) {
+  .marks > div { grid-template-columns: minmax(0, 10rem) minmax(0, 1fr); }
+}
+.mark-skull { color: #f2efe6; }
+.mark-cross { color: #ff4a3d; }
+.mark-moon { color: #b8d4ec; }
+.mark-star { color: #ffd100; }
+.mark-diamond { color: #d36cf0; }
+.mark-circle { color: #ff9a2e; }
+.mark-triangle { color: #52d66b; }
+.mark-square { color: #4aa3ff; }
+
 /* --------------------------------------------------------------- footer */
 .site-foot {
   padding: 40px 0 56px;
